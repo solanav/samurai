@@ -1,0 +1,16 @@
+FUNCTIONS
+xor metric
+k closest nodes to a given node ID (for find_node)
+split bucket
+check if we need to split bucket
+
+STRUCTURES
+node
+message
+bucket
+
+MESSAGES
+ping
+store
+find_node
+find_value
