@@ -10,6 +10,22 @@ pub struct Bucket {
     max_nodes: u32,
 }
 
+pub fn add_vec(v: &Vec<u8>) -> Vec<u8> {
+    let mut r = v.clone();
+    
+    for i in (0..r.len()).rev() {
+        if r[i] == 255 {
+            r[i] = 0;
+        }
+        else {
+            r[i] += 1;
+            break;
+        }
+    }
+
+    r
+}
+
 impl Bucket {
     pub fn new(max_nodes: u32) -> Bucket {
         Bucket {
@@ -21,12 +37,21 @@ impl Bucket {
         }
     }
 
-    pub fn divide(&mut self) -> Result<(), &'static str> {
+    pub fn divide(&mut self) -> Result<Bucket, &'static str> {
         if self.contains_u == false {
             return Err("This bucket does not contain the self")
         }
-        
-        Ok(())
+
+        let old_end = self.end_id.clone();
+        self.end_id[0] /= 2;
+
+        Ok(Bucket {
+            node_list: Vec::new(),
+            contains_u: false,
+            start_id: add_vec(&self.end_id),
+            end_id: old_end,
+            max_nodes: self.max_nodes,
+        })
     }
 
     pub fn add_node(&mut self, node: Node) -> Result<(), &'static str> {

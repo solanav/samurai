@@ -10,7 +10,10 @@ mod bucket_test {
         for _i in 0..4 {
             match b.add_node(crate::node::Node::new(vec![0; 20])) {
                 Ok(_) => {},
-                Err(_) => println!("We have to divide this bucket"),
+                Err(_) => match b.divide() {
+                    Ok(divided) => println!("{:?}", divided),
+                    Err(_) => println!("Failed to divide bucket"),
+                },
             }
         }
         
