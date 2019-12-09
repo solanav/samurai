@@ -1,5 +1,7 @@
 use std::fmt;
 
+pub const ID_SIZE: usize = 20;
+
 pub struct Node {
     id: Vec<u8>,
 }

@@ -1,6 +1,5 @@
-extern crate hex;
 use std::fmt;
-use crate::node::Node;
+use crate::node::{Node, ID_SIZE};
 
 pub struct Bucket {
     node_list: Vec<Node>,
@@ -26,6 +25,36 @@ pub fn add_vec(v: &Vec<u8>) -> Vec<u8> {
     r
 }
 
+pub fn between_id(start: &Vec<u8>, end: &Vec<u8>, v: &Vec<u8>) -> bool {
+    if start.len() != end.len() || start.len() != v.len() {
+        return false
+    }
+
+    // Check if bigger than the start    
+    for i in 0..start.len() {
+        if v[0] < start[i] {
+            return false;
+        } else if v[0] > start[i] {
+            break;
+        } else {
+            continue;
+        }
+    }
+
+    // Check if smaller than the end    
+    for i in 0..end.len() {
+        if v[0] > end[i] {
+            return false;
+        } else if v[0] < end[i] {
+            break;
+        } else {
+            continue;
+        }
+    }
+    
+    true
+}
+
 impl Bucket {
     pub fn new(max_nodes: u32) -> Bucket {
         Bucket {
@@ -45,13 +74,15 @@ impl Bucket {
         let old_end = self.end_id.clone();
         self.end_id[0] /= 2;
 
-        Ok(Bucket {
+        let nu_bucket = Bucket {
             node_list: Vec::new(),
             contains_u: false,
             start_id: add_vec(&self.end_id),
             end_id: old_end,
             max_nodes: self.max_nodes,
-        })
+        };
+
+        Ok(nu_bucket)
     }
 
     pub fn add_node(&mut self, node: Node) -> Result<(), &'static str> {
@@ -61,6 +92,30 @@ impl Bucket {
 
         self.node_list.push(node);
         Ok(())
+    }
+
+    pub fn rm_node(&mut self, node_id: &Vec<u8>) -> Result<(), &'static str> {
+        for i in 0..self.node_list.len() {
+            let mut eq = true;
+            let other_id = self.node_list[i].get_id();
+
+            // Check if this is the node we are looking for
+            for j in 0..ID_SIZE {
+                if other_id[j] != node_id[j] {
+                    println!("{} > {}", other_id[j], node_id[j]);
+                    eq = false;
+                    break;
+                }
+            }
+            
+            // If we find the node, delete it
+            if eq == true {
+                self.node_list.remove(i);
+                return Ok(())
+            }
+        }
+
+        Err("Failed to remove node")
     }
 }
 
