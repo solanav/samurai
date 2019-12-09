@@ -1,3 +1,5 @@
+use std::fmt;
+
 pub struct Node {
     id: Vec<u8>,
 }
@@ -11,5 +13,11 @@ impl Node {
 
     pub fn get_id(&self) -> Vec<u8> {
         self.id.clone()
+    }
+}
+
+impl fmt::Debug for Node {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{:?}", self.get_id())
     }
 }
