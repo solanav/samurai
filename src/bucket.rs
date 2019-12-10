@@ -74,7 +74,7 @@ impl Bucket {
         let old_end = self.end_id.clone();
         self.end_id[0] /= 2;
 
-        let nu_bucket = Bucket {
+        let mut nu_bucket = Bucket {
             node_list: Vec::new(),
             contains_u: false,
             start_id: add_vec(&self.end_id),
@@ -82,12 +82,26 @@ impl Bucket {
             max_nodes: self.max_nodes,
         };
 
+        for i in 0..self.node_list.len() {
+            match self.add_node(self.node_list[i].clone()) {
+                Ok(_) => {},
+                Err(_) => match nu_bucket.add_node(self.node_list[i].clone()) {
+                    Ok(_) => {},
+                    Err(_) => println!("Failed to add node to divided bucket"),
+                },
+            };
+        }
+
         Ok(nu_bucket)
     }
 
     pub fn add_node(&mut self, node: Node) -> Result<(), &'static str> {
         if self.node_list.len() >= self.max_nodes as usize {
             return Err("This bucket is already full");
+        }
+
+        if between_id(&self.start_id, &self.end_id, &node.get_id()) == false {
+            return Err("This bucket should not contain that node")
         }
 
         self.node_list.push(node);

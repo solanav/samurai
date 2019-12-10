@@ -2,6 +2,7 @@ use std::fmt;
 
 pub const ID_SIZE: usize = 20;
 
+#[derive(Clone)]
 pub struct Node {
     id: Vec<u8>,
 }
