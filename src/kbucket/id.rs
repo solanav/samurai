@@ -1,18 +1,36 @@
 // Kademlia ID
+use std::cmp::{Eq, Ordering, PartialEq};
+use std::fmt;
 use std::ops::{Add, AddAssign, Sub, SubAssign};
-use std::cmp::{Eq, PartialEq, Ordering};
 
-#[derive(Debug, Eq, PartialEq, Clone, Copy)]
+#[derive(Eq, PartialEq, Clone, Copy)]
 pub struct Id {
     high: u32,
-    low: u128
+    low: u128,
 }
 
 impl Id {
     pub fn new(h: u32, l: u128) -> Self {
+        Self { high: h, low: l }
+    }
+
+    pub fn zero() -> Self {
+        Self { high: 0, low: 0 }
+    }
+
+    pub fn max() -> Self {
         Self {
-            high: h,
-            low: l
+            high: u32::max_value(),
+            low: u128::max_value(),
+        }
+    }
+}
+
+impl fmt::Debug for Id {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self.high {
+            0 => write!(f, "{}", self.high),
+            _ => write!(f, "{}{}", self.high, self.low),
         }
     }
 }
@@ -36,7 +54,6 @@ macro_rules! impl_add_id {
     ($($t:ty)*) => ($(
         impl Add<$t> for Id {
             type Output = Self;
-        
             fn add(self, rhs: $t) -> Self {
                 let mut rhs = rhs;
 
@@ -47,7 +64,6 @@ macro_rules! impl_add_id {
                 if self.low.checked_add(rhs as u128) == None {
                     rhs -= (u128::max_value() - self.low) as $t;
                     low = 0;
-                
                     // If high is going to overflow too
                     if rhs as u128 > (u32::max_value() - self.high) as u128 {
                         high = u32::max_value();
@@ -62,7 +78,6 @@ macro_rules! impl_add_id {
                 else {
                     low += rhs as u128;
                 }
-        
                 Self {high: high, low: low}
             }
         }
@@ -85,7 +100,6 @@ macro_rules! impl_sub_id {
     ($($t:ty)*) => ($(
         impl Sub<$t> for Id {
             type Output = Self;
-        
             fn sub(self, rhs: $t) -> Self {
                 let mut rhs = rhs as u128;
 
@@ -104,7 +118,6 @@ macro_rules! impl_sub_id {
                 else {
                     low -= rhs;
                 }
-        
                 Self {high: high, low: low}
             }
         }
