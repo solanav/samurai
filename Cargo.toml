@@ -1,15 +1,11 @@
 [package]
-name = "kademlia_buckets"
+name = "kademlia"
 version = "0.1.0"
 authors = ["solanav"]
 edition = "2018"
-
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
 rand = "0.7.2"
 
 [lib]
 test = true
-bench = true
-doc = true
