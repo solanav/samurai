@@ -9,6 +9,23 @@ jobs:
 
     steps:
     - uses: actions/checkout@v1
+      
+    - name: Cache cargo registry
+      uses: actions/cache@v1
+      with:
+        path: ~/.cargo/registry
+        key: cargo-registry
+    - name: Cache cargo index
+      uses: actions/cache@v1
+      with:
+        path: ~/.cargo/git
+        key: cargo-index
+    - name: Cache cargo build
+      uses: actions/cache@v1
+      with:
+        path: target
+        key: cargo-build-target
+
     - name: Build
       run: cargo build --verbose
     - name: Run tests
