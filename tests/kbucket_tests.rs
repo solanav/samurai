@@ -16,8 +16,9 @@ fn test_add() {
 
 #[test]
 fn test_sub() {
-    // Normal addition
+    // Normal substraction
     assert_eq!(Id::new(0, 1) - 1, Id::new(0, 0));
+    assert_eq!(Id::new(1, 0) - 1, Id::new(0, u128::max_value()));
     // Does not underflow
     assert_eq!(Id::new(0, 0) - 1, Id::new(0, 0));
 }
@@ -30,6 +31,8 @@ fn test_cmp() {
 }
 
 #[test]
-fn test_bucket() {
-    println!("{:?}", Bucket::new(20))
+fn half_id() {
+    let mut id = Id::new(0, 9);
+    Id::half(&mut id);
+    assert_eq!(id, Id::new(0, 4));
 }

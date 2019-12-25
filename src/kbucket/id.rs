@@ -24,12 +24,17 @@ impl Id {
             low: u128::max_value(),
         }
     }
+
+    pub fn half(id: &mut Self) {
+        id.high /= 2;
+        id.low /= 2;
+    }
 }
 
 impl fmt::Debug for Id {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self.high {
-            0 => write!(f, "{}", self.high),
+            0 => write!(f, "{}", self.low),
             _ => write!(f, "{}{}", self.high, self.low),
         }
     }
@@ -108,7 +113,7 @@ macro_rules! impl_sub_id {
 
                 // If low is going to underflow
                 if rhs > self.low {
-                    rhs -= self.low;
+                    rhs -= self.low + 1;
                     match high {
                         0 => { high = 0; low = 0; },
                         n => { high = n - 1; low = u128::max_value() - rhs },
@@ -118,6 +123,7 @@ macro_rules! impl_sub_id {
                 else {
                     low -= rhs;
                 }
+
                 Self {high: high, low: low}
             }
         }
