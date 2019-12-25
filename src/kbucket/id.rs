@@ -1,11 +1,18 @@
 // Kademlia ID
 use std::cmp::{Eq, Ordering, PartialEq};
+use std::fmt;
 use std::ops::{Add, AddAssign, Sub, SubAssign};
 
-#[derive(Debug, Eq, PartialEq, Clone, Copy)]
+#[derive(Eq, PartialEq, Clone, Copy)]
 pub struct Id {
     high: u32,
     low: u128,
+}
+
+impl fmt::Debug for Id {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{:b}{:b}", self.high, self.low)
+    }
 }
 
 impl Id {
@@ -32,7 +39,7 @@ impl Id {
         id.low = id.low >> 1;
 
         // Add overflow bit from high to low
-        low = rls_overflow | low;
+        id.low |= rls_overflow;
     }
 }
 
