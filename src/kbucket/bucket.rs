@@ -25,7 +25,7 @@ impl Bucket {
             return Err("This bucket is already full");
         }
 
-        if node > self.start_id || node < self.end_id {
+        if self.start_id > node || node > self.end_id {
             return Err("This bucket should not contain that node");
         }
 
@@ -46,7 +46,7 @@ impl Bucket {
 impl fmt::Debug for Bucket {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let mut output = format!(
-            "{:?}\t{:?}\n\t{:?}\n",
+            "{:?}\t{:?}\n\t{:?}",
             self.contains_u, self.start_id, self.end_id
         );
 
@@ -54,6 +54,6 @@ impl fmt::Debug for Bucket {
             output = format!("{}\n\t{:?}", output, node);
         }
 
-        write!(f, "{}", output)
+        write!(f, "{}\n", output)
     }
 }

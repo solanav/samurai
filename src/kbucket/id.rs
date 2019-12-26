@@ -11,7 +11,7 @@ pub struct Id {
 
 impl fmt::Debug for Id {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{:b}{:b}", self.high, self.low)
+        write!(f, "{:032b}{:0128b}", self.high, self.low)
     }
 }
 
