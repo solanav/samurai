@@ -6,7 +6,7 @@ fn test_add() {
     let mut b = Bucket::new(10);
     let i = Id::new(1, 1);
     
-    match b.add_node(i) {
+    match b.add_node(&i) {
         Ok(_) => {},
         Err(e) => panic!(e),
     }
@@ -18,8 +18,8 @@ fn test_add() {
 fn test_rm() {
     let mut b = Bucket::new(10);
     let i = Id::new(0, 1);
-    assert_eq!(b.add_node(i.clone()).is_ok(), true);
+    assert_eq!(b.add_node(&i).is_ok(), true);
     println!("{:?}", b);
-    b.rm_node(i);
+    b.rm_node(&i);
     println!("{:?}", b);
 }

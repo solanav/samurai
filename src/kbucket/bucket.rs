@@ -20,25 +20,26 @@ impl Bucket {
         }
     }
 
-    pub fn add_node(&mut self, node: Id) -> Result<(), &'static str> {
+    pub fn add_node(&mut self, node: &Id) -> Result<(), &'static str> {
         if self.node_list.len() >= self.max_nodes {
             return Err("This bucket is already full");
         }
 
-        if self.start_id > node || node > self.end_id {
+        if self.start_id > *node || *node > self.end_id {
             return Err("This bucket should not contain that node");
         }
 
-        self.node_list.push(node);
+        self.node_list.push(*node);
         Ok(())
     }
 
-    pub fn rm_node(&mut self, node: Id) {
-        for i in 0..self.node_list.len() {
-            if node == self.node_list[i] {
+    pub fn rm_node(&mut self, node: &Id) {
+        match self.node_list.iter().position(|&id| id == *node) {
+            Some(i) => {
                 self.node_list.remove(i);
-                return;
-            }
+                ()
+            },
+            None => {},
         }
     }
 }
