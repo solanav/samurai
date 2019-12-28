@@ -1,25 +1,27 @@
 use kademlia::kbucket::bucket::Bucket;
+use kademlia::kbucket::node::Node;
 use kademlia::kbucket::id::Id;
+
+static BUCKET_SIZE: usize = 10;
 
 #[test]
 fn test_add() {
-    let mut b = Bucket::new(10);
-    let i = Id::new(1, 1);
-    
-    match b.add_node(&i) {
-        Ok(_) => {},
-        Err(e) => panic!(e),
-    }
-
-    println!("{:?}", b);
+    let mut b = Bucket::new(BUCKET_SIZE, Id::zero(), Id::max());
+    let n = Node::new(Id::new(1, 1), true);
+    assert_eq!(b.add_node(n).is_ok(), true);
 }
 
 #[test]
-fn test_rm() {
-    let mut b = Bucket::new(10);
-    let i = Id::new(0, 1);
-    assert_eq!(b.add_node(&i).is_ok(), true);
-    println!("{:?}", b);
-    b.rm_node(&i);
-    println!("{:?}", b);
+fn test_bucket_list() {
+    let mut bucket_list: Vec<Bucket> = Vec::new();
+    bucket_list.push(Bucket::new(BUCKET_SIZE, Id::zero(), Id::max()));
+
+    println!("{:?}", bucket_list);
+
+    match bucket_list[0].divide() {
+        Some(val) => bucket_list.push(val),
+        None => panic!("Failed to divide"),
+    };
+
+    println!("{:?}", bucket_list);
 }

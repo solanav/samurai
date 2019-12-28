@@ -31,14 +31,6 @@ fn test_cmp() {
 
 #[test]
 fn half_id() {
-    let mut simple_id = Id::new(0, 9);
-    let mut complex_id = Id::max();
-
-    println!("{:?}", complex_id);
-
-    Id::half(&mut simple_id);
-    Id::half(&mut complex_id);
-    
-    assert_eq!(simple_id, Id::new(0, 4));
-    println!("{:?}", complex_id);
+    let simple_id = Id::new(0, 9);
+    assert_eq!(simple_id.half(), Id::new(0, 4));
 }
