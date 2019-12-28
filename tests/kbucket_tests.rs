@@ -15,9 +15,24 @@ fn test_add() {
 fn test_bucket_list() {
     let mut bucket_list: Vec<Bucket> = Vec::new();
     bucket_list.push(Bucket::new(BUCKET_SIZE, Id::zero(), Id::max()));
-
+    
+    // Add local node
+    match bucket_list[0].add_node(Node::new(Id::rand(), true)) {
+        Ok(_) => {},
+        Err(_) => panic!("Failed to add random node to bucket list"),
+    };
+    
+    // Add more nodes
+    for _i in 0..5 {
+        match bucket_list[0].add_node(Node::new(Id::rand(), false)) {
+            Ok(_) => {},
+            Err(_) => panic!("Failed to add random node to bucket list"),
+        };
+    }
+    
     println!("{:?}", bucket_list);
 
+    // Divide and add the new bucket to the list
     match bucket_list[0].divide() {
         Some(val) => bucket_list.push(val),
         None => panic!("Failed to divide"),

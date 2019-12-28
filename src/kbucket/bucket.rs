@@ -28,6 +28,10 @@ impl Bucket {
             return Err("This bucket should not contain that node");
         }
 
+        if self.local().is_ok() && node.is_local() {
+            return Err("There already is a local node inside the bucket")
+        }
+
         self.node_list.push(node);
         Ok(())
     }
@@ -54,10 +58,12 @@ impl Bucket {
 
     pub fn divide(&mut self) -> Option<Self> {
         if self.node_list.len() >= self.max_nodes {
+            println!("Too many nodes");
             return None;
         }
 
-        if !self.local().is_err() {
+        if self.local().is_err() {
+            println!("No local");
             return None;
         }
 
@@ -67,12 +73,12 @@ impl Bucket {
 
         let mut new_bucket = Bucket::new(self.max_nodes, self.end_id + 1, end_id);
 
-        // Try to add nodes to new bucket
-        for i in 0..self.node_list.len() {
-            match new_bucket.add_node(self.node_list[i]) {
-                Ok(_) => self.rm_node(self.node_list[i].id()),
-                Err(_) => {}
-            };
+        // Move nodes to corresponding bucket
+        let node_list_copy = self.node_list.clone();
+        for node in node_list_copy.iter() {
+            if new_bucket.add_node(*node).is_ok() {
+                self.rm_node(node.id())
+            }
         }
 
         Some(new_bucket)
@@ -83,7 +89,7 @@ impl fmt::Debug for Bucket {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let mut output = format!(
             "{:?}\t{:?}\n\t{:?}",
-            self.local().is_err(),
+            self.local().is_ok(),
             self.start_id,
             self.end_id
         );

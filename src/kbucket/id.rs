@@ -1,3 +1,4 @@
+use rand::random;
 use std::cmp::{Eq, Ordering, PartialEq};
 use std::fmt;
 use std::ops::{Add, AddAssign, Sub, SubAssign};
@@ -30,10 +31,16 @@ impl Id {
         }
     }
 
+    pub fn rand() -> Self {
+        Self {
+            high: random::<u32>(),
+            low: random::<u128>(),
+        }
+    }
+
     pub fn half(self) -> Id {
         let mut half = self;
         let rls_overflow: u128 = ((half.high & 0b1) as u128) << 127;
-        
         // Shift right to divide by 2
         half.high = half.high >> 1;
         half.low = half.low >> 1;
