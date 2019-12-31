@@ -91,6 +91,16 @@ impl Bucket {
 
         Ok(self.node_list[i])
     }
+
+    pub fn get_by_id(&self, id: &Id) -> Result<Node, &'static str> {
+        for node in self.node_list.iter() {
+            if node.id() == *id {
+                return Ok(*node);
+            }
+        }
+
+        Err("Node not found on bucket")
+    }
 }
 
 impl fmt::Debug for Bucket {
