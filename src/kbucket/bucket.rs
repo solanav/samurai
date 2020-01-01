@@ -83,6 +83,14 @@ impl Bucket {
 
         Some(new_bucket)
     }
+
+    pub fn get(&self, i: usize) -> Result<Node, &'static str> {
+        if i >= self.node_list.len() {
+            return Err("Index out of range");
+        }
+
+        Ok(self.node_list[i])
+    }
 }
 
 impl fmt::Debug for Bucket {
