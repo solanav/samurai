@@ -1,26 +1,30 @@
-static TOTAL_SIZE: usize = 508;
-static HEADER_SIZE: usize = 2;
-static NUM_SIZE: usize = 2;
-static COOKIE_SIZE: usize = 4;
-static DATA_SIZE: usize = 500;
+use std::net::SocketAddr;
 
-struct Packet {
+pub const TOTAL_SIZE: usize = 508;
+const HEADER_SIZE: usize = 2;
+const NUM_SIZE: usize = 2;
+const COOKIE_SIZE: usize = 4;
+const DATA_SIZE: usize = 500;
+
+pub struct Packet {
     header: Vec<u8>, // Information about the contents of this message
     data: Vec<u8>, // Data inside the packet
     cookie: Vec<u8>, // To know what the other is responding to
-    num: Vec<u8>, // Packet number (if we are splitting it)
-    src_ip: SockAddr,
+    num: u32, // Packet number (if we are splitting it)
+    src_ip: SocketAddr,
 }
 
 impl Packet {
     fn new(header: Vec<u8>,
         data: Vec<u8>,
         cookie: Vec<u8>,
-        src_ip: SockAddr) -> Self {
+        num: u32,
+        src_ip: SocketAddr) -> Self {
         Packet {
             header: header,
-            data: data[0..MAX_PACKET_SIZE],
+            data: data[0..TOTAL_SIZE].to_vec(),
             cookie: cookie,
+            num: num,
             src_ip: src_ip,
         }
     }
