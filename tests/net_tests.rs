@@ -8,9 +8,7 @@ use std::net::{UdpSocket, SocketAddr, IpAddr, Ipv4Addr};
 fn test_start() {
     // Start server in a new thread
     let server = Server::new(4321);
-    let server_thread = thread::spawn(move || {
-        server.start();        
-    });
+    server.start();
 
     // Send UDP packet to the server
     let client = Client::new();
