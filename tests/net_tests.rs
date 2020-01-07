@@ -16,7 +16,4 @@ fn test_start() {
     let addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 4321);
     
     client.send(addr, buf);
-
-    // Wait for server to finish
-    server_thread.join();
 }
