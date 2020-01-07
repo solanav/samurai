@@ -16,6 +16,10 @@ const SRCIP_OFFSET: usize = 6;
 const NUM_OFFSET: usize = 10;
 const DATA_OFFSET: usize = 12;
 
+// Headers
+pub const PING_HEADER: [u8; HEADER_SIZE] = [0, 0];
+pub const PONG_HEADER: [u8; HEADER_SIZE] = [0, 1];
+
 pub struct Packet {
     header: [u8; HEADER_SIZE], // Information about the contents of this message
     cookie: [u8; COOKIE_SIZE], // To know what the other is responding to
@@ -74,6 +78,10 @@ impl Packet {
             num: ((buf[NUM_OFFSET] as u32) << 8) + (buf[NUM_OFFSET + 1] as u32),
             data: data,
         }
+    }
+
+    pub fn header(&self) -> &[u8; HEADER_SIZE] {
+        return &self.header;
     }
 }
 
