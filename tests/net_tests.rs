@@ -1,8 +1,6 @@
-use kademlia::network::packet::Packet;
-use kademlia::network::passive::Server;
 use kademlia::network::active::Client;
-use std::thread;
-use std::net::{UdpSocket, SocketAddr, IpAddr, Ipv4Addr};
+use kademlia::network::passive::Server;
+use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 
 #[test]
 fn test_start() {
@@ -14,6 +12,5 @@ fn test_start() {
     let client = Client::new();
     let buf: &[u8] = &[1, 2, 3];
     let addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 4321);
-    
     client.send(addr, buf);
 }

@@ -8,18 +8,14 @@ const DATA_SIZE: usize = 500;
 
 pub struct Packet {
     header: Vec<u8>, // Information about the contents of this message
-    data: Vec<u8>, // Data inside the packet
+    data: Vec<u8>,   // Data inside the packet
     cookie: Vec<u8>, // To know what the other is responding to
-    num: u32, // Packet number (if we are splitting it)
+    num: u32,        // Packet number (if we are splitting it)
     src_ip: SocketAddr,
 }
 
 impl Packet {
-    fn new(header: Vec<u8>,
-        data: Vec<u8>,
-        cookie: Vec<u8>,
-        num: u32,
-        src_ip: SocketAddr) -> Self {
+    fn new(header: Vec<u8>, data: Vec<u8>, cookie: Vec<u8>, num: u32, src_ip: SocketAddr) -> Self {
         Packet {
             header: header,
             data: data[0..TOTAL_SIZE].to_vec(),
