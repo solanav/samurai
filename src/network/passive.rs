@@ -1,7 +1,6 @@
 use crate::network::packet::{Packet, TOTAL_SIZE};
 use std::net::UdpSocket;
 use std::thread;
-use std::thread::JoinHandle;
 
 pub struct Server {
     socket: UdpSocket,    // Server's socket
@@ -21,12 +20,16 @@ impl Server {
         thread::spawn(move || {
             let mut buf = [0; TOTAL_SIZE];
 
-            let (number_of_bytes, src_addr) = self
-                .socket
-                .recv_from(&mut buf)
-                .expect("Did not receive data");
+            loop {
+                let (number_of_bytes, src_addr) = self
+                    .socket
+                    .recv_from(&mut buf)
+                    .expect("Did not receive data");
+                
+                let packet = Packet::from_bytes(&buf);
 
-            println!("<<< RECV {} [{}]", src_addr, number_of_bytes);
+                println!("<<< RECV {} [{:?}]", src_addr, packet);
+            }
         });
     }
 }

@@ -23,7 +23,5 @@ impl Client {
 
         self.socket.send(buf)
             .expect("couldn't send message");
-
-        println!(">>> SENT {} [{}]", ip, buf.len());
     }
 }
