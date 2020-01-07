@@ -1,5 +1,5 @@
 use crate::network::packet::{Packet, TOTAL_SIZE};
-use std::collections::VecDeque;
+use crate::network::handler;
 use std::net::UdpSocket;
 use std::thread;
 
@@ -20,7 +20,6 @@ impl Server {
     pub fn start(self) {
         thread::spawn(move || {
             let mut buf = [0; TOTAL_SIZE];
-            let mut packets = VecDeque::new();
             loop {
                 let (number_of_bytes, src_addr) = self
                     .socket
@@ -28,7 +27,7 @@ impl Server {
                     .expect("Did not receive data");
                 let packet = Packet::from_bytes(&buf);
                 println!("<<< RECV {} [{:?}]", src_addr, packet);
-                packets.push_back(packet);
+                handler::switch(&packet);
             }
         });
     }
