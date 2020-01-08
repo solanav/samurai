@@ -1,6 +1,7 @@
 use rand::Rng;
 use std::net::SocketAddr;
 use std::net::UdpSocket;
+use crate::network::packet::Packet;
 
 pub struct Client {
     socket: UdpSocket, // Client's socket
@@ -15,11 +16,18 @@ impl Client {
         Client { socket: socket }
     }
 
-    pub fn send(&self, ip: SocketAddr, buf: &[u8]) {
+    fn send_bytes(&self, dst: SocketAddr, buf: &[u8]) {
         self.socket
-            .connect(format!("{}", ip))
+            .connect(format!("{}", dst))
             .expect("connect function failed");
 
         self.socket.send(buf).expect("couldn't send message");
+    }
+
+    fn send_packet(&self, dst: SocketAddr, packet: Packet) {
+
+    }
+
+    pub fn ping(&self, dst: SocketAddr) {
     }
 }

@@ -11,6 +11,7 @@ pub struct Server {
 impl Server {
     pub fn new(port: u16) -> Self {
         Server {
+            // TODO: Try ports until you get one that is free
             socket: UdpSocket::bind(format!("127.0.0.1:{}", port))
                 .expect("Could not bind to that address"),
             port: port,
