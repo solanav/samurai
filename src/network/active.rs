@@ -1,7 +1,7 @@
 use rand::Rng;
 use std::net::SocketAddr;
 use std::net::UdpSocket;
-use crate::network::packet::Packet;
+use crate::network::packet::{Packet, *};
 
 pub struct Client {
     socket: UdpSocket, // Client's socket
@@ -25,9 +25,16 @@ impl Client {
     }
 
     fn send_packet(&self, dst: SocketAddr, packet: Packet) {
-
+        self.send_bytes(dst, &packet.as_bytes());
     }
 
     pub fn ping(&self, dst: SocketAddr) {
+        let packet = Packet::new_with_cookie(PING_HEADER, &[0; DATA_SIZE]);
+        self.send_packet(dst, packet);
+    }
+
+    pub fn pong(&self, dst: SocketAddr, cookie: u32) {
+        let packet = Packet::new(PING_HEADER, cookie, &[0; DATA_SIZE]);
+        self.send_packet(dst, packet);
     }
 }

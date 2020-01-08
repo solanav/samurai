@@ -27,8 +27,7 @@ impl Server {
                     .recv_from(&mut buf)
                     .expect("Did not receive data");
                 let packet = Packet::from_bytes(&buf);
-                println!("<<< RECV {} [{:?}]", src_addr, packet);
-                handler::switch(&packet);
+                handler::switch(&packet, src_addr);
             }
         });
     }
