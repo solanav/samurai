@@ -34,7 +34,7 @@ impl Client {
     }
 
     pub fn pong(&self, dst: SocketAddr, cookie: u32) {
-        let packet = Packet::new(PING_HEADER, cookie, &[0; DATA_SIZE]);
+        let packet = Packet::new(PONG_HEADER, cookie, &[0; DATA_SIZE]);
         self.send_packet(dst, packet);
     }
 }

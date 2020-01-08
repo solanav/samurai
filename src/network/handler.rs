@@ -11,12 +11,12 @@ pub fn switch(packet: &Packet, src: SocketAddr) {
 }
 
 fn ping(packet: &Packet, mut src: SocketAddr) {
-    println!("RECV PING FROM {}\n{:?}", src, packet);
+    println!("RECV PING FROM {}", src);
     let client = Client::new();
     src.set_port(4321);
     client.pong(src, packet.cookie());
 }
 
 fn pong(packet: &Packet) {
-    println!("RECV PONG\n{:?}", packet);
+    println!("RECV PONG\n");
 }

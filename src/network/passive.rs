@@ -1,5 +1,5 @@
-use crate::network::packet::{Packet, TOTAL_SIZE};
 use crate::network::handler;
+use crate::network::packet::{Packet, TOTAL_SIZE};
 use std::net::UdpSocket;
 use std::thread;
 
@@ -19,16 +19,14 @@ impl Server {
     }
 
     pub fn start(self) {
-        thread::spawn(move || {
+        thread::spawn(move || loop {
             let mut buf = [0; TOTAL_SIZE];
-            loop {
-                let (number_of_bytes, src_addr) = self
-                    .socket
-                    .recv_from(&mut buf)
-                    .expect("Did not receive data");
-                let packet = Packet::from_bytes(&buf);
-                handler::switch(&packet, src_addr);
-            }
+            let (number_of_bytes, src_addr) = self
+                .socket
+                .recv_from(&mut buf)
+                .expect("Did not receive data");
+            let packet = Packet::from_bytes(&buf);
+            handler::switch(&packet, src_addr);
         });
     }
 }
