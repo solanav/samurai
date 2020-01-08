@@ -4,7 +4,7 @@ use kademlia::network::packet::{Packet, TOTAL_SIZE};
 use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 
 #[test]
-fn test_start() {
+fn test_ping() {
     // Start server in a new thread
     let server = Server::new(4321);
     server.start();
