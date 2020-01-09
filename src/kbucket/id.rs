@@ -5,18 +5,18 @@ use std::ops::{Add, AddAssign, Sub, SubAssign};
 
 #[derive(Eq, PartialEq, Clone, Copy)]
 pub struct Id {
-    high: u32,
+    high: u128,
     low: u128,
 }
 
 impl fmt::Debug for Id {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{:032b}{:0128b}", self.high, self.low)
+        write!(f, "{:032x}{:032x}", self.high, self.low)
     }
 }
 
 impl Id {
-    pub fn new(h: u32, l: u128) -> Self {
+    pub fn new(h: u128, l: u128) -> Self {
         Self { high: h, low: l }
     }
 
@@ -26,14 +26,14 @@ impl Id {
 
     pub fn max() -> Self {
         Self {
-            high: u32::max_value(),
+            high: u128::max_value(),
             low: u128::max_value(),
         }
     }
 
     pub fn rand() -> Self {
         Self {
-            high: random::<u32>(),
+            high: random::<u128>(),
             low: random::<u128>(),
         }
     }
@@ -82,13 +82,13 @@ macro_rules! impl_add_id {
                     rhs -= (u128::max_value() - self.low) as $t;
                     low = 0;
                     // If high is going to overflow too
-                    if rhs as u128 > (u32::max_value() - self.high) as u128 {
-                        high = u32::max_value();
+                    if rhs as u128 > (u128::max_value() - self.high) as u128 {
+                        high = u128::max_value();
                         low = u128::max_value();
                     }
                     // If high does not overflow just add it
                     else {
-                        high += rhs as u32;
+                        high += rhs as u128;
                     }
                 }
                 // If low does not overflow just add it

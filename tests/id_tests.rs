@@ -8,8 +8,8 @@ fn test_add() {
     assert_eq!(Id::new(0, u128::max_value()) + 1, Id::new(1, 0));
     // Does not overflow
     assert_eq!(
-        Id::new(u32::max_value(), u128::max_value()) + 1,
-        Id::new(u32::max_value(), u128::max_value())
+        Id::new(u128::max_value(), u128::max_value()) + 1,
+        Id::new(u128::max_value(), u128::max_value())
     );
 }
 

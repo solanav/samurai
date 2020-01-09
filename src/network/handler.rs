@@ -20,3 +20,7 @@ fn ping(packet: &Packet, mut src: SocketAddr) {
 fn pong(packet: &Packet) {
     println!("RECV PONG\n");
 }
+
+fn find_node(packet: &Packet) {
+    println!("Someone is asking about nodes")
+}
