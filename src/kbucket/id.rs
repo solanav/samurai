@@ -3,6 +3,10 @@ use std::cmp::{Eq, Ordering, PartialEq};
 use std::fmt;
 use std::ops::{Add, AddAssign, Sub, SubAssign};
 
+pub const ID_BYTES: usize = 32;
+pub const HIGH_BITS: usize = 128;
+pub const LOW_BITS: usize = 128;
+
 #[derive(Eq, PartialEq, Clone, Copy)]
 pub struct Id {
     high: u128,
@@ -18,6 +22,39 @@ impl fmt::Debug for Id {
 impl Id {
     pub fn new(h: u128, l: u128) -> Self {
         Self { high: h, low: l }
+    }
+
+    pub fn from_bytes(data: &[u8; ID_BYTES]) -> Self {
+        let mut h: u128 = 0;
+        for i in 0..ID_BYTES/2 {
+            h += (data[i] as u128) << (120 - (i * 8));
+        }
+
+        let mut l: u128 = 0;
+        for i in ID_BYTES/2..ID_BYTES {
+            l += (data[i] as u128) << (120 - (i - ID_BYTES/2) * 8);
+        }
+
+        Self {
+            high: h,
+            low: l
+        }
+    }
+
+    pub fn as_bytes(&self) -> [u8; ID_BYTES] {
+        let mut id_bytes = [0u8; ID_BYTES];
+
+        for i in 0..ID_BYTES/2 {
+            id_bytes[i] = (self.high >> (0 + i * 8)) as u8;
+        }
+
+        for i in ID_BYTES/2..ID_BYTES {
+            print!("{} > {}", i, (i - ID_BYTES/2));
+            id_bytes[i] = (self.low >> (0 + (i - ID_BYTES/2) * 8)) as u8;
+            println!(" OK");
+        }
+
+        id_bytes
     }
 
     pub fn zero() -> Self {

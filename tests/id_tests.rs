@@ -34,3 +34,10 @@ fn half_id() {
     let simple_id = Id::new(0, 9);
     assert_eq!(simple_id.half(), Id::new(0, 4));
 }
+
+#[test]
+fn bytes_id() {
+    let buf = [13u8; 32];
+    let simple_id = Id::from_bytes(&buf);
+    println!("{:?}", simple_id);
+}

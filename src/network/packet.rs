@@ -1,5 +1,5 @@
-use std::fmt;
 use rand::random;
+use std::fmt;
 
 // Size in bytes
 pub const TOTAL_SIZE: usize = 508;
@@ -15,6 +15,8 @@ const DATA_OFFSET: usize = 6;
 // Headers
 pub const PING_HEADER: u16 = 0;
 pub const PONG_HEADER: u16 = 1;
+pub const FINDNODE_HEADER: u16 = 2;
+pub const SENDNODE_HEADER: u16 = 3;
 
 pub struct Packet {
     header: u16,           // Information about the contents of this message
@@ -54,6 +56,7 @@ impl Packet {
             + ((buf[COOKIE_OFFSET + 1] as u32) << 16)
             + ((buf[COOKIE_OFFSET + 2] as u32) << 8)
             + (buf[COOKIE_OFFSET + 3] as u32);
+
         // Return the packet
         Packet {
             header: header,

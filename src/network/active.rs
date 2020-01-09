@@ -2,6 +2,7 @@ use rand::Rng;
 use std::net::SocketAddr;
 use std::net::UdpSocket;
 use crate::network::packet::{Packet, *};
+use crate::kbucket::id::Id;
 
 pub struct Client {
     socket: UdpSocket, // Client's socket
@@ -34,6 +35,23 @@ impl Client {
     }
 
     pub fn pong(&self, dst: SocketAddr, cookie: u32) {
+        let packet = Packet::new(PONG_HEADER, cookie, &[0; DATA_SIZE]);
+        self.send_packet(dst, packet);
+    }
+
+    pub fn find_node(&self, dst: SocketAddr, id: &Id) {
+        let mut buf = [0u8; DATA_SIZE];
+        let id_bytes = id.as_bytes();
+
+        for i in 0..id_bytes.len() {
+            buf[i] = id_bytes[i];
+        }
+
+        let packet = Packet::new_with_cookie(FINDNODE_HEADER, &buf);
+        self.send_packet(dst, packet);
+    }
+
+    pub fn send_node(&self, dst: SocketAddr, cookie: u32, id: &[Id; 10]) {
         let packet = Packet::new(PONG_HEADER, cookie, &[0; DATA_SIZE]);
         self.send_packet(dst, packet);
     }
