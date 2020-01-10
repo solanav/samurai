@@ -27,12 +27,12 @@ impl Id {
     pub fn from_bytes(data: &[u8; ID_BYTES]) -> Self {
         let mut h: u128 = 0;
         for i in 0..ID_BYTES/2 {
-            h += (data[i] as u128) << (120 - (i * 8));
+            h += (data[i] as u128) << (120 - (i * 8)) as u128;
         }
 
         let mut l: u128 = 0;
         for i in ID_BYTES/2..ID_BYTES {
-            l += (data[i] as u128) << (120 - (i - ID_BYTES/2) * 8);
+            l += (data[i] as u128) << (120 - (i - ID_BYTES/2) * 8) as u128;
         }
 
         Self {
@@ -44,14 +44,14 @@ impl Id {
     pub fn as_bytes(&self) -> [u8; ID_BYTES] {
         let mut id_bytes = [0u8; ID_BYTES];
 
+        let h_bytes = self.high.to_be_bytes();
         for i in 0..ID_BYTES/2 {
-            id_bytes[i] = (self.high >> (0 + i * 8)) as u8;
+            id_bytes[i] = h_bytes[i];
         }
 
+        let l_bytes = self.high.to_be_bytes();
         for i in ID_BYTES/2..ID_BYTES {
-            print!("{} > {}", i, (i - ID_BYTES/2));
-            id_bytes[i] = (self.low >> (0 + (i - ID_BYTES/2) * 8)) as u8;
-            println!(" OK");
+            id_bytes[i] = l_bytes[i - ID_BYTES/2];
         }
 
         id_bytes

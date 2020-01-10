@@ -5,14 +5,16 @@ use kademlia::kbucket::id::Id;
 use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 use std::thread::sleep;
 
+const CLIENT_NUMNODES: usize = 10;
+
 #[test]
 fn test_sending() {
     // Start server in a new thread
-    let server = Server::new(4321);
+    let server = Server::new(4321, CLIENT_NUMNODES);
     server.start();
 
     // Send UDP packet to the server
-    let client = Client::new();
+    let client = Client::new(CLIENT_NUMNODES);
     let addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 4321);
     
     client.ping(addr);
@@ -24,16 +26,7 @@ fn test_sending() {
 
 #[test]
 fn test_packet() {
-    let mut buf = [0; TOTAL_SIZE];
-    
-    buf[0] = 0;
-    buf[1] = 1;
-    buf[2] = 0;
-    buf[3] = 1;
-    buf[4] = 0;
-    buf[5] = 1;
-    buf[6] = 0;
-    buf[7] = 1;
+    let mut buf = [0u8; TOTAL_SIZE];
 
     let packet = Packet::from_bytes(&buf);
     let packet2 = Packet::from_bytes(&packet.as_bytes());
