@@ -3,6 +3,10 @@ name = "samurai"
 version = "0.1.0"
 authors = ["solanav"]
 edition = "2018"
+description = "p2p protocol"
+keywords = ["p2p", "samurai", "kademlia"]
+license = " AGPL-3.0-only"
+license-file = "LICENSE"
 
 [dependencies]
 rand = "0.7"

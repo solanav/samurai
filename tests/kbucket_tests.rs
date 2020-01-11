@@ -1,6 +1,6 @@
-use kademlia::kbucket::bucket::Bucket;
-use kademlia::kbucket::node::Node;
-use kademlia::kbucket::id::Id;
+use samurai::kbucket::bucket::Bucket;
+use samurai::kbucket::node::Node;
+use samurai::kbucket::id::Id;
 
 static BUCKET_SIZE: usize = 10;
 

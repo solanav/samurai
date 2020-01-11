@@ -1,4 +1,4 @@
-use kademlia::kbucket::id::Id;
+use samurai::kbucket::id::Id;
 
 #[test]
 fn test_add() {

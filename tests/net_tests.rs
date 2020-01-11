@@ -1,7 +1,7 @@
-use kademlia::network::active::Client;
-use kademlia::network::passive::Server;
-use kademlia::network::packet::{Packet, TOTAL_SIZE};
-use kademlia::kbucket::id::Id;
+use samurai::network::active::Client;
+use samurai::network::passive::Server;
+use samurai::network::packet::{Packet, TOTAL_SIZE};
+use samurai::kbucket::id::Id;
 use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 use std::thread::sleep;
 
