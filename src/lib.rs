@@ -1,4 +1,4 @@
 extern crate rand;
 
-pub mod kbucket;
+pub mod types;
 pub mod network;

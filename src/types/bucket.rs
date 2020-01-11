@@ -1,5 +1,5 @@
-use crate::kbucket::id::Id;
-use crate::kbucket::node::Node;
+use crate::types::id::Id;
+use crate::types::node::Node;
 use std::fmt;
 
 pub struct Bucket {

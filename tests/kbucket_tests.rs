@@ -1,6 +1,6 @@
-use samurai::kbucket::bucket::Bucket;
-use samurai::kbucket::node::Node;
-use samurai::kbucket::id::Id;
+use samurai::types::bucket::Bucket;
+use samurai::types::node::Node;
+use samurai::types::id::Id;
 
 static BUCKET_SIZE: usize = 10;
 

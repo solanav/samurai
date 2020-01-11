@@ -1,4 +1,4 @@
-use samurai::kbucket::id::Id;
+use samurai::types::id::Id;
 
 #[test]
 fn test_add() {

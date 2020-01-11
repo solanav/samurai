@@ -1,8 +1,7 @@
 use crate::network::active::Client;
 use crate::network::packet::{self, Packet, DATA_SIZE};
 use std::net::SocketAddr;
-use crate::kbucket::id::{Id, ID_BYTES};
-use std::process::id;
+use crate::types::id::{Id, ID_BYTES};
 
 pub struct Handler {
     client: Client, // Used to respond to messages
@@ -18,20 +17,20 @@ impl Handler {
     pub fn switch(&self, packet: &Packet, src: SocketAddr) {
         match packet.header() {
             packet::PING_HEADER => self.ping(packet, src),
-            packet::PONG_HEADER => self.pong(packet),
+            packet::PONG_HEADER => self.pong(),
             packet::FINDNODE_HEADER => self.find_node(packet, src),
-            packet::SENDNODE_HEADER => self.send_node(packet, src),
+            packet::SENDNODE_HEADER => self.send_node(packet),
             _ => println!("Header not found, dropping packet"),
         }
     }
 
     fn ping(&self, packet: &Packet, mut src: SocketAddr) {
         println!("RECV PING FROM {}", src);
-        src.set_port(4321);
+        src.set_port(1024);
         self.client.pong(src, packet.cookie());
     }
 
-    fn pong(&self, packet: &Packet) {
+    fn pong(&self) {
         println!("RECV PONG\n");
     }
 
@@ -41,8 +40,8 @@ impl Handler {
         println!("RECV FINDNODE {:?}", Id::from_bytes(&id_bytes));
 
         let mut id_list= Vec::new();
-        src.set_port(4321);
-        for i in 0..self.client.num_nodes() {
+        src.set_port(1024);
+        for _ in 0..self.client.num_nodes() {
             let id = Id::rand();
             println!("{:?}", id);
             id_list.push(id);
@@ -50,7 +49,7 @@ impl Handler {
         self.client.send_node(src, packet.cookie(), &id_list);
     }
 
-    fn send_node(&self, packet: &Packet, mut src: SocketAddr) {
+    fn send_node(&self, packet: &Packet) {
         let mut id_list: Vec<Id> = Vec::new();
 
         for i in 0..DATA_SIZE/ID_BYTES {

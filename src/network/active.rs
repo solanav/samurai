@@ -2,7 +2,7 @@ use rand::Rng;
 use std::net::SocketAddr;
 use std::net::UdpSocket;
 use crate::network::packet::{Packet, *};
-use crate::kbucket::id::{Id, ID_BYTES};
+use crate::types::id::{Id, ID_BYTES};
 
 pub struct Client {
     socket: UdpSocket, // Client's socket

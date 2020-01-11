@@ -1,4 +1,4 @@
-use crate::kbucket::id::Id;
+use crate::types::id::Id;
 use std::fmt;
 
 #[derive(fmt::Debug, Copy, Clone)]
@@ -9,10 +9,7 @@ pub struct Node {
 
 impl Node {
     pub fn new(id: Id, local: bool) -> Self {
-        Node {
-            id: id,
-            local: local,
-        }
+        Node { id, local }
     }
 
     pub fn is_local(self) -> bool {
