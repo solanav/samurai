@@ -1,22 +1,39 @@
 use crate::network::handler::Handler;
 use crate::network::packet::{Packet, TOTAL_SIZE};
-use std::net::UdpSocket;
+use std::net::{UdpSocket, SocketAddr};
 use std::thread;
+use std::sync::{Arc, Mutex};
+use std::io::Error;
 
 pub struct Server {
     socket: UdpSocket, // Server's socket
     port: u16,         // List of packets not yet processed
     num_nodes: usize,  // Number of nodes we send when find_node is received
+    requests: Arc<Mutex<Vec<(Packet, fn(packet: &Packet, src: SocketAddr))>>> // List of requests
 }
 
 impl Server {
-    pub fn new(port: u16, num_nodes: usize) -> Self {
+    pub fn new(num_nodes: usize) -> Self {
+        let socket: UdpSocket;
+        let port: u16;
+        'outer: loop {
+            for p in 1024..65535 {
+                match UdpSocket::bind(format!("127.0.0.1:{}", p)) {
+                    Ok(s) => {
+                        socket = s;
+                        port = p;
+                        break 'outer;
+                    },
+                    Err(_) => {}
+                };
+            }
+        }
+
         Server {
-            // TODO: Try ports until you get one that is free
-            socket: UdpSocket::bind(format!("127.0.0.1:{}", port))
-                .expect("Could not bind to that address"),
-            num_nodes: num_nodes,
-            port: port,
+            socket,
+            num_nodes,
+            port,
+            requests: Arc::new(Mutex::new(Vec::new())),
         }
     }
 

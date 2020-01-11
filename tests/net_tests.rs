@@ -10,7 +10,7 @@ const CLIENT_NUMNODES: usize = 10;
 #[test]
 fn test_sending() {
     // Start server in a new thread
-    let server = Server::new(4321, CLIENT_NUMNODES);
+    let server = Server::new(CLIENT_NUMNODES);
     server.start();
 
     // Send UDP packet to the server

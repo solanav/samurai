@@ -20,10 +20,7 @@ impl Client {
         let socket = UdpSocket::bind(format!("127.0.0.1:{}", rng.gen_range(1024, 65536)))
             .expect("couldn't bind to address");
 
-        Client {
-            socket: socket,
-            num_nodes: num_nodes,
-        }
+        Client { socket, num_nodes }
     }
 
     pub fn num_nodes(&self) -> usize { self.num_nodes }
