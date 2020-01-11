@@ -1,7 +1,7 @@
 use rand::random;
 use std::cmp::{Eq, Ordering, PartialEq};
 use std::fmt;
-use std::ops::{Add, AddAssign, Sub, SubAssign};
+use std::ops::{Add, AddAssign, Sub, SubAssign, BitXor};
 
 pub const ID_BYTES: usize = 32;
 pub const HIGH_BITS: usize = 128;
@@ -49,7 +49,7 @@ impl Id {
             id_bytes[i] = h_bytes[i];
         }
 
-        let l_bytes = self.high.to_be_bytes();
+        let l_bytes = self.low.to_be_bytes();
         for i in ID_BYTES/2..ID_BYTES {
             id_bytes[i] = l_bytes[i - ID_BYTES/2];
         }
@@ -75,7 +75,7 @@ impl Id {
         }
     }
 
-    pub fn half(self) -> Id {
+    pub fn half(self) -> Self {
         let mut half = self;
         let rls_overflow: u128 = ((half.high & 0b1) as u128) << 127;
         // Shift right to divide by 2
@@ -86,6 +86,17 @@ impl Id {
         half.low |= rls_overflow;
 
         half
+    }
+}
+
+impl BitXor for Id {
+    type Output = Self;
+
+    fn bitxor(self, rhs: Self) -> Self::Output {
+        Id {
+            high: self.high ^ rhs.high,
+            low: self.low ^ rhs.low,
+        }
     }
 }
 

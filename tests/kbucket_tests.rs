@@ -21,7 +21,7 @@ fn test_bucket_list() {
         Ok(_) => {},
         Err(_) => panic!("Failed to add random node to bucket list"),
     };
-    
+
     // Add more nodes
     for _i in 0..5 {
         match bucket_list[0].add_node(Node::new(Id::rand(), false)) {
@@ -39,4 +39,29 @@ fn test_bucket_list() {
     };
 
     println!("{:?}", bucket_list);
+}
+
+#[test]
+fn test_xor_distance() {
+    let mut bucket_list: Vec<Bucket> = Vec::new();
+    bucket_list.push(Bucket::new(BUCKET_SIZE, Id::zero(), Id::max()));
+
+    // Add local node
+    match bucket_list[0].add_node(Node::new(Id::rand(), true)) {
+        Ok(_) => {},
+        Err(_) => panic!("Failed to add random node to bucket list"),
+    };
+
+    // Add more nodes
+    for _i in 0..5 {
+        match bucket_list[0].add_node(Node::new(Id::rand(), false)) {
+            Ok(_) => {},
+            Err(_) => panic!("Failed to add random node to bucket list"),
+        };
+    }
+
+    println!("{:?}", bucket_list);
+
+    let id = Id::rand();
+    println!("{:?}", bucket_list[0].get_closest(&id));
 }

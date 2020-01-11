@@ -101,6 +101,18 @@ impl Bucket {
 
         Err("Node not found on bucket")
     }
+
+    pub fn get_closest(&self, id: &Id) -> Vec<Id> {
+        let mut xor_vec: Vec<(Id, Id)> = self.node_list.iter()
+            .map(|node| (*id ^ node.id(), node.id()))
+            .collect();
+
+        xor_vec.sort_by(|a, b| a.0.cmp(&b.0));
+
+        xor_vec.iter()
+            .map(|tup| tup.1)
+            .collect()
+    }
 }
 
 impl fmt::Debug for Bucket {
