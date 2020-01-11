@@ -1,7 +1,8 @@
 use crate::network::active::Client;
-use crate::network::packet::{self, Packet};
+use crate::network::packet::{self, Packet, DATA_SIZE};
 use std::net::SocketAddr;
 use crate::kbucket::id::{Id, ID_BYTES};
+use std::process::id;
 
 pub struct Handler {
     client: Client, // Used to respond to messages
@@ -51,9 +52,14 @@ impl Handler {
     }
 
     fn send_node(&self, packet: &Packet, mut src: SocketAddr) {
-        let mut id_bytes = [0u8; ID_BYTES];
-        id_bytes.copy_from_slice(&packet.data()[..ID_BYTES]);
+        let mut id_list: Vec<Id> = Vec::new();
 
-        println!("RECV SENDNODE {:?}", Id::from_bytes(&id_bytes));
+        for i in 0..DATA_SIZE/ID_BYTES {
+            let mut id_bytes = [0u8; ID_BYTES];
+            id_bytes.copy_from_slice(&packet.data()[i*ID_BYTES..(i+1)*ID_BYTES]);
+            id_list.push(Id::from_bytes(&id_bytes))
+        }
+
+        println!("RECV SENDNODE {:?}", id_list);
     }
 }
