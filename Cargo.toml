@@ -1,5 +1,5 @@
 [package]
-name = "kademlia"
+name = "samurai"
 version = "0.1.0"
 authors = ["solanav"]
 edition = "2018"
