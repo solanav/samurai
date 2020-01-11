@@ -65,8 +65,6 @@ impl Client {
     pub fn send_node(&self, dst: SocketAddr, cookie: u32, id_list: &Vec<Id>) {
         let mut buf = [0u8; DATA_SIZE];
 
-        println!("SENDING NODES");
-
         let mut i = 0;
         for id in id_list.iter() {
             for b in id.as_bytes().iter() {

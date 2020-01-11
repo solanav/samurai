@@ -40,7 +40,6 @@ impl Handler {
         id_bytes.copy_from_slice(&packet.data()[..ID_BYTES]);
         println!("RECV FINDNODE {:?}", Id::from_bytes(&id_bytes));
 
-        // TODO: find the closest nodes and send them
         let mut id_list= Vec::new();
         src.set_port(4321);
         for i in 0..self.client.num_nodes() {
