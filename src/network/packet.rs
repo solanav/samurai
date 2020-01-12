@@ -3,8 +3,6 @@ use std::fmt;
 
 // Size in bytes
 pub const TOTAL_SIZE: usize = 508;
-const HEADER_SIZE: usize = 2;
-const COOKIE_SIZE: usize = 4;
 pub const DATA_SIZE: usize = 502;
 
 // Offsets in bytes
@@ -27,15 +25,15 @@ pub struct Packet {
 impl Packet {
     pub fn new(header: u16, cookie: u32, data: &[u8; DATA_SIZE]) -> Self {
         Packet {
-            header: header,
-            cookie: cookie,
+            header,
+            cookie,
             data: *data,
         }
     }
 
     pub fn new_with_cookie(header: u16, data: &[u8; DATA_SIZE]) -> Self {
         Packet {
-            header: header,
+            header,
             cookie: random::<u32>(),
             data: *data,
         }
@@ -59,9 +57,9 @@ impl Packet {
 
         // Return the packet
         Packet {
-            header: header,
-            cookie: cookie,
-            data: data,
+            header,
+            cookie,
+            data,
         }
     }
 

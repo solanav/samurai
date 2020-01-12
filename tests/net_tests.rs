@@ -13,8 +13,8 @@ fn test_sending() {
     let server = Server::new(CLIENT_NUMNODES);
 
     {
-        let mut requests = server.requests().lock().unwrap();
-        (*requests).push_back((5310, move |_packet, _src| {
+        let mut requests = server.requests();
+        (*requests.lock().unwrap()).push_back((5310, move |_packet, _src| {
             println!("HEY QUE PASA");
         }));
     }
