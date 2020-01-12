@@ -9,20 +9,13 @@ const CLIENT_NUMNODES: usize = 10;
 
 #[test]
 fn test_sending() {
-    // Start server in a new thread
-    let server = Server::new(CLIENT_NUMNODES);
-
-    {
-        let mut requests = server.requests();
-        (*requests.lock().unwrap()).push_back((5310, move |_packet, _src| {
-            println!("HEY QUE PASA");
-        }));
-    }
+    // Create client and server
+    let client = Client::new(CLIENT_NUMNODES);
+    let server = Server::new(CLIENT_NUMNODES, client.requests());
 
     server.start();
 
     // Send UDP packet to the server
-    let client = Client::new(CLIENT_NUMNODES);
     let addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 1024);
     
     client.ping(addr);

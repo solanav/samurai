@@ -2,22 +2,25 @@ use crate::network::active::Client;
 use crate::network::packet::{self, Packet, DATA_SIZE};
 use std::net::SocketAddr;
 use crate::types::id::{Id, ID_BYTES};
+use crate::network::passive::ReqList;
 
 pub struct Handler {
     client: Client, // Used to respond to messages
+    requests: ReqList,
 }
 
 impl Handler {
-    pub fn new(num_nodes: usize) -> Self {
+    pub fn new(num_nodes: usize, requests: ReqList) -> Self {
         Handler {
             client: Client::new(num_nodes),
+            requests,
         }
     }
 
     pub fn switch(&self, packet: &Packet, src: SocketAddr) {
         match packet.header() {
             packet::PING_HEADER => self.ping(packet, src),
-            packet::PONG_HEADER => self.pong(),
+            packet::PONG_HEADER => self.pong(packet, src),
             packet::FINDNODE_HEADER => self.find_node(packet, src),
             packet::SENDNODE_HEADER => self.send_node(packet),
             _ => println!("Header not found, dropping packet"),
@@ -30,8 +33,15 @@ impl Handler {
         self.client.pong(src, packet.cookie());
     }
 
-    fn pong(&self) {
-        println!("RECV PONG\n");
+    fn pong(&self, packet: &Packet, src: SocketAddr) {
+        println!("RECV PONG {:?}\n", packet.cookie());
+        let req_list = self.requests.lock().unwrap();
+        for i in 0..req_list.len() {
+            if req_list[i].0 == packet.cookie() {
+                // We found the original ping
+                (req_list[i].1)(packet, src);
+            }
+        }
     }
 
     fn find_node(&self, packet: &Packet, mut src: SocketAddr) {

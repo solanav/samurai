@@ -8,11 +8,13 @@ use std::collections::VecDeque;
 pub struct Server {
     socket: Arc<Mutex<UdpSocket>>, // Server's socket
     num_nodes: Arc<Mutex<usize>>,  // Number of nodes we send when find_node is received
-    requests: Arc<Mutex<VecDeque<(u32, fn(&Packet, SocketAddr))>>> // List of requests
+    requests: ReqList // List of requests
 }
 
+pub type ReqList = Arc<Mutex<VecDeque<(u32, fn(&Packet, SocketAddr))>>>;
+
 impl Server {
-    pub fn new(num_nodes: usize) -> Self {
+    pub fn new(num_nodes: usize, requests: ReqList) -> Self {
         let socket: UdpSocket;
         'outer: loop {
             for p in 1024..65535 {
@@ -29,7 +31,7 @@ impl Server {
         Server {
             socket: Arc::new(Mutex::new(socket)),
             num_nodes: Arc::new(Mutex::new(num_nodes)),
-            requests: Arc::new(Mutex::new(VecDeque::new())),
+            requests,
         }
     }
 
@@ -41,25 +43,21 @@ impl Server {
 
         thread::spawn(move || loop {
             let mut buf = [0; TOTAL_SIZE];
-            let handler = Handler::new(*num_nodes.lock().unwrap());
+            let handler = Handler::new(*num_nodes.lock().unwrap(), Arc::clone(&requests));
 
-            let (_number_of_bytes, src_addr) = (*socket.lock().unwrap())
+            let (_number_of_bytes, src_addr) = socket.lock().unwrap()
                 .recv_from(&mut buf)
                 .expect("Did not receive data");
 
             let packet = Packet::from_bytes(&buf);
 
             let mut x = 0;
-            for i in (*requests.lock().unwrap()).iter() {
+            for i in requests.lock().unwrap().iter() {
                 println!("{} ===== {:?}", x, i.0);
                 x += 1;
             }
 
             handler.switch(&packet, src_addr);
         });
-    }
-
-    pub fn requests(&self) -> Arc<Mutex<VecDeque<(u32, fn(&Packet, SocketAddr))>>> {
-        Arc::clone(&self.requests)
     }
 }
