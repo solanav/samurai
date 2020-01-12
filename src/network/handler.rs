@@ -20,7 +20,7 @@ impl Handler {
     pub fn switch(&self, packet: &Packet, src: SocketAddr) {
         match packet.header() {
             packet::PING_HEADER => self.ping(packet, src),
-            packet::PONG_HEADER => self.pong(packet, src),
+            packet::PONG_HEADER => self.pong(packet),
             packet::FINDNODE_HEADER => self.find_node(packet, src),
             packet::SENDNODE_HEADER => self.send_node(packet),
             _ => println!("Header not found, dropping packet"),
@@ -28,18 +28,16 @@ impl Handler {
     }
 
     fn ping(&self, packet: &Packet, mut src: SocketAddr) {
-        println!("RECV PING FROM {}", src);
         src.set_port(1024);
         self.client.pong(src, packet.cookie());
     }
 
-    fn pong(&self, packet: &Packet, src: SocketAddr) {
-        println!("RECV PONG {:?}\n", packet.cookie());
+    fn pong(&self, packet: &Packet) {
         let req_list = self.requests.lock().unwrap();
         for i in 0..req_list.len() {
-            if req_list[i].0 == packet.cookie() {
+            if req_list[i].cookie() == packet.cookie() {
                 // We found the original ping
-                (req_list[i].1)(packet, src);
+                println!("We found the original PING with cookie {}", req_list[i].cookie());
             }
         }
     }
@@ -47,14 +45,12 @@ impl Handler {
     fn find_node(&self, packet: &Packet, mut src: SocketAddr) {
         let mut id_bytes = [0u8; ID_BYTES];
         id_bytes.copy_from_slice(&packet.data()[..ID_BYTES]);
-        println!("RECV FINDNODE {:?}", Id::from_bytes(&id_bytes));
 
         let mut id_list= Vec::new();
         src.set_port(1024);
         for _ in 0..self.client.num_nodes() {
-            let id = Id::rand();
-            println!("{:?}", id);
-            id_list.push(id);
+            // TODO: this should not be random id, we should get them from buckets
+            id_list.push(Id::rand());
         }
         self.client.send_node(src, packet.cookie(), &id_list);
     }
@@ -67,7 +63,5 @@ impl Handler {
             id_bytes.copy_from_slice(&packet.data()[i*ID_BYTES..(i+1)*ID_BYTES]);
             id_list.push(Id::from_bytes(&id_bytes))
         }
-
-        println!("RECV SENDNODE {:?}", id_list);
     }
 }

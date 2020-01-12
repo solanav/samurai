@@ -1,6 +1,6 @@
 use crate::network::handler::Handler;
 use crate::network::packet::{Packet, TOTAL_SIZE};
-use std::net::{UdpSocket, SocketAddr};
+use std::net::UdpSocket;
 use std::thread;
 use std::sync::{Arc, Mutex};
 use std::collections::VecDeque;
@@ -11,7 +11,7 @@ pub struct Server {
     requests: ReqList // List of requests
 }
 
-pub type ReqList = Arc<Mutex<VecDeque<(u32, fn(&Packet, SocketAddr))>>>;
+pub type ReqList = Arc<Mutex<VecDeque<Packet>>>;
 
 impl Server {
     pub fn new(num_nodes: usize, requests: ReqList) -> Self {
@@ -50,13 +50,6 @@ impl Server {
                 .expect("Did not receive data");
 
             let packet = Packet::from_bytes(&buf);
-
-            let mut x = 0;
-            for i in requests.lock().unwrap().iter() {
-                println!("{} ===== {:?}", x, i.0);
-                x += 1;
-            }
-
             handler.switch(&packet, src_addr);
         });
     }
