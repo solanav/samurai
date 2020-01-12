@@ -3,9 +3,13 @@ name = "samurai"
 version = "0.1.1"
 authors = ["solanav"]
 edition = "2018"
-description = "p2p protocol"
+readme = "README"
 keywords = ["p2p", "samurai", "kademlia"]
 license-file = "LICENSE"
+repository = "https://github.com/solanav/samurai"
+description = """
+Very early stage user-space P2P network protocol.
+"""
 
 [dependencies]
 rand = "0.7"
