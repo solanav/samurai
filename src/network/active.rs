@@ -74,11 +74,14 @@ impl Client {
     pub fn send_node(&self, dst: SocketAddr, cookie: u32, id_list: &Vec<Id>) {
         let mut buf = [0u8; DATA_SIZE];
 
-        let mut i = 0;
-        for id in id_list.iter() {
+        for i in 0..id_list.iter().len() {
+            // Careful not to add too many ID
+            if i >= DATA_SIZE/ID_BYTES {
+                break;
+            }
+
             for b in id.as_bytes().iter() {
                 buf[i] = *b;
-                i += 1;
             }
         }
 
