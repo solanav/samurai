@@ -80,7 +80,7 @@ impl Client {
                 break;
             }
 
-            for b in id.as_bytes().iter() {
+            for b in id_list[i].as_bytes().iter() {
                 buf[i] = *b;
             }
         }

@@ -3,7 +3,7 @@ The intention of this piece of code is to create a p2p protocol on top of UDP.
 
 # Goals
 1. End to end encryption
-2. Decentrilized bootstraping
+2. Decentralized bootstraping
 3. Trust system
 
 # Resources I'm using

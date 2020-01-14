@@ -13,13 +13,13 @@ impl Bucket {
     pub fn new(max_nodes: usize, start_id: Id, end_id: Id) -> Self {
         Self {
             node_list: Vec::new(),
-            start_id: start_id,
-            end_id: end_id,
-            max_nodes: max_nodes,
+            start_id,
+            end_id,
+            max_nodes,
         }
     }
 
-    pub fn add_node(&mut self, node: Node) -> Result<(), &'static str> {
+    pub fn add_node(&mut self, node: &Node) -> Result<(), &'static str> {
         if self.node_list.len() >= self.max_nodes {
             return Err("This bucket is already full");
         }
@@ -32,7 +32,7 @@ impl Bucket {
             return Err("There already is a local node inside the bucket")
         }
 
-        self.node_list.push(node);
+        self.node_list.push(*node);
         Ok(())
     }
 
@@ -76,7 +76,7 @@ impl Bucket {
         // Move nodes to corresponding bucket
         let node_list_copy = self.node_list.clone();
         for node in node_list_copy.iter() {
-            if new_bucket.add_node(*node).is_ok() {
+            if new_bucket.add_node(node).is_ok() {
                 self.rm_node(node.id())
             }
         }
@@ -102,16 +102,12 @@ impl Bucket {
         Err("Node not found on bucket")
     }
 
-    pub fn get_closest(&self, id: &Id) -> Vec<Id> {
-        let mut xor_vec: Vec<(Id, Id)> = self.node_list.iter()
-            .map(|node| (*id ^ node.id(), node.id()))
-            .collect();
+    pub fn fits(&self, id: &Id) -> bool {
+        *id > self.start_id && *id < self.end_id
+    }
 
-        xor_vec.sort_by(|a, b| a.0.cmp(&b.0));
-
-        xor_vec.iter()
-            .map(|tup| tup.1)
-            .collect()
+    pub fn node_list(&self) -> &Vec<Node> {
+        &self.node_list
     }
 }
 

@@ -58,6 +58,7 @@ impl Handler {
     fn send_node(&self, packet: &Packet) {
         let mut id_list: Vec<Id> = Vec::new();
 
+        // Extract the ID from send_node
         for i in 0..DATA_SIZE/ID_BYTES {
             let mut id_bytes = [0u8; ID_BYTES];
             id_bytes.copy_from_slice(&packet.data()[i*ID_BYTES..(i+1)*ID_BYTES]);
