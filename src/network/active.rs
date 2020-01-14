@@ -10,7 +10,7 @@ use crate::network::passive::ReqList;
 pub struct Client {
     socket: UdpSocket, // Client's socket
     num_nodes: usize, // Number of nodes we send when someone asks
-    requests: ReqList // List of requests
+    requests: Arc<Mutex<ReqList>> // List of requests
 }
 
 impl Client {
@@ -74,14 +74,17 @@ impl Client {
     pub fn send_node(&self, dst: SocketAddr, cookie: u32, id_list: &Vec<Id>) {
         let mut buf = [0u8; DATA_SIZE];
 
+        let mut j = 0;
         for i in 0..id_list.iter().len() {
             // Careful not to add too many ID
             if i >= DATA_SIZE/ID_BYTES {
                 break;
             }
 
+            // Copy ID to the buffer
             for b in id_list[i].as_bytes().iter() {
-                buf[i] = *b;
+                buf[j] = *b;
+                j += 1;
             }
         }
 
@@ -89,7 +92,7 @@ impl Client {
         self.send_packet(dst, packet);
     }
 
-    pub fn requests(&self) -> ReqList {
+    pub fn requests(&self) -> Arc<Mutex<ReqList>> {
         Arc::clone(&self.requests)
     }
 }

@@ -3,16 +3,20 @@ use crate::network::packet::{self, Packet, DATA_SIZE};
 use std::net::SocketAddr;
 use crate::types::id::{Id, ID_BYTES};
 use crate::network::passive::ReqList;
+use crate::types::bucket_list::BucketList;
+use std::sync::{Arc, Mutex};
 
 pub struct Handler {
     client: Client, // Used to respond to messages
-    requests: ReqList,
+    bucket_list: Arc<Mutex<BucketList>>,
+    requests: Arc<Mutex<ReqList>>,
 }
 
 impl Handler {
-    pub fn new(num_nodes: usize, requests: ReqList) -> Self {
+    pub fn new(num_nodes: usize, requests: Arc<Mutex<ReqList>>, bucket_list: Arc<Mutex<BucketList>>) -> Self {
         Handler {
             client: Client::new(num_nodes),
+            bucket_list,
             requests,
         }
     }
@@ -43,15 +47,17 @@ impl Handler {
     }
 
     fn find_node(&self, packet: &Packet, mut src: SocketAddr) {
+        // Extract the ID from the packet
         let mut id_bytes = [0u8; ID_BYTES];
         id_bytes.copy_from_slice(&packet.data()[..ID_BYTES]);
 
-        let mut id_list= Vec::new();
+        // Get list of the closest nodes
+        let id_list = self.bucket_list.lock().unwrap()
+            .get_closest(&Id::from_bytes(&id_bytes));
+
+        println!("{:?}", id_list);
+
         src.set_port(1024);
-        for _ in 0..self.client.num_nodes() {
-            // TODO: this should not be random id, we should get them from buckets
-            id_list.push(Id::rand());
-        }
         self.client.send_node(src, packet.cookie(), &id_list);
     }
 
@@ -64,5 +70,7 @@ impl Handler {
             id_bytes.copy_from_slice(&packet.data()[i*ID_BYTES..(i+1)*ID_BYTES]);
             id_list.push(Id::from_bytes(&id_bytes))
         }
+
+        println!("{:?}", id_list);
     }
 }

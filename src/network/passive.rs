@@ -4,17 +4,19 @@ use std::net::UdpSocket;
 use std::thread;
 use std::sync::{Arc, Mutex};
 use std::collections::VecDeque;
+use crate::types::bucket_list::BucketList;
 
 pub struct Server {
     socket: Arc<Mutex<UdpSocket>>, // Server's socket
     num_nodes: Arc<Mutex<usize>>,  // Number of nodes we send when find_node is received
-    requests: ReqList // List of requests
+    bucket_list: Arc<Mutex<BucketList>>, // List of peers
+    requests: Arc<Mutex<ReqList>>, // List of requests
 }
 
-pub type ReqList = Arc<Mutex<VecDeque<Packet>>>;
+pub type ReqList = VecDeque<Packet>;
 
 impl Server {
-    pub fn new(num_nodes: usize, requests: ReqList) -> Self {
+    pub fn new(num_nodes: usize, requests: Arc<Mutex<ReqList>>, bucket_list: BucketList) -> Self {
         let socket: UdpSocket;
         'outer: loop {
             for p in 1024..65535 {
@@ -31,6 +33,7 @@ impl Server {
         Server {
             socket: Arc::new(Mutex::new(socket)),
             num_nodes: Arc::new(Mutex::new(num_nodes)),
+            bucket_list: Arc::new(Mutex::new(bucket_list)),
             requests,
         }
     }
@@ -40,10 +43,16 @@ impl Server {
         let socket = Arc::clone(&self.socket);
         let num_nodes = Arc::clone(&self.num_nodes);
         let requests = Arc::clone(&self.requests);
+        let bucket_list = Arc::clone(&self.bucket_list);
 
+        // Launch thread with main loop
         thread::spawn(move || loop {
             let mut buf = [0; TOTAL_SIZE];
-            let handler = Handler::new(*num_nodes.lock().unwrap(), Arc::clone(&requests));
+            let handler = Handler::new(
+                *num_nodes.lock().unwrap(),
+                Arc::clone(&requests),
+                Arc::clone(&bucket_list),
+            );
 
             let (_number_of_bytes, src_addr) = socket.lock().unwrap()
                 .recv_from(&mut buf)
