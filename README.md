@@ -1,5 +1,11 @@
 # What is this?
-The intention of this piece of code is to create a p2p protocol on top of UDP.
+The intention of this piece of code is to create a p2p protocol on top of UDP. 
+
+# Warning
+This project is still in a very early stage. It cannot be used for anything yet.
+
+# Contribute
+If you want to contribute to this project, either take a look at the issues or send me an email (solanav at qq.com) if you want to collaborate more deeply.
 
 # Goals
 1. End to end encryption
