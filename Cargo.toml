@@ -12,7 +12,9 @@ Very early stage user-space P2P network protocol.
 """
 
 [dependencies]
-rand = "0.7"
+rand = "0.7.3"
+igd = "0.9.1"
+get_if_addrs = "0.5.3"
 
 [lib]
 test = true
