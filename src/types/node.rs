@@ -1,15 +1,21 @@
 use crate::types::id::Id;
 use std::fmt;
+use std::net::SocketAddr;
 
 #[derive(fmt::Debug, Copy, Clone)]
 pub struct Node {
     id: Id, // Id of the node
     local: bool, // Is this node us?
+    addr: SocketAddr, // Address
 }
 
 impl Node {
-    pub fn new(id: Id, local: bool) -> Self {
-        Node { id, local }
+    pub fn new(id: Id, local: bool, addr: SocketAddr) -> Self {
+        Node {
+            id,
+            local,
+            addr,
+        }
     }
 
     pub fn is_local(self) -> bool {

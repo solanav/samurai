@@ -10,13 +10,19 @@ use samurai::types::node::Node;
 
 const CLIENT_NUMNODES: usize = 10;
 
+macro_rules! zero_addr {
+    () => {
+        SocketAddr::new(IpAddr::V4(Ipv4Addr::new(0,0,0,0)), 1234)
+    }
+}
+
 #[test]
 fn test_sending() {
     let mut bucket_list = BucketList::new();
     bucket_list.add_bucket(Bucket::new(5, Id::zero(), Id::max()));
-    bucket_list.add_node(&Node::new(Id::rand(), true));
-    bucket_list.add_node(&Node::new(Id::rand(), false));
-    bucket_list.add_node(&Node::new(Id::rand(), false));
+    bucket_list.add_node(&Node::new(Id::rand(), true, zero_addr!()));
+    bucket_list.add_node(&Node::new(Id::rand(), false, zero_addr!()));
+    bucket_list.add_node(&Node::new(Id::rand(), false, zero_addr!()));
 
     // Create client and server
     let client = Client::new(CLIENT_NUMNODES);
