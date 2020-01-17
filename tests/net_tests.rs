@@ -2,6 +2,7 @@ use samurai::network::init_network;
 use samurai::network::packet::{Packet, TOTAL_SIZE};
 use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 use std::thread::sleep;
+use samurai::types::id::Id;
 
 #[test]
 fn test_sending() {
@@ -12,6 +13,9 @@ fn test_sending() {
     let addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 1025);
 
     client.ping(addr);
+    sleep(std::time::Duration::new(2, 0));
+
+    client.find_node(addr, &Id::rand());
     sleep(std::time::Duration::new(2, 0));
 
     server.stop();

@@ -6,13 +6,13 @@ use std::sync::{Arc, Mutex};
 use crate::network::passive::ReqList;
 
 pub struct Client {
-    socket: Arc<Mutex<UdpSocket>>, // Client's socket (Same as server)
+    socket: UdpSocket, // Client's socket (Same as server)
     num_nodes: usize, // Number of nodes we send when someone asks
     requests: Arc<Mutex<ReqList>> // List of requests
 }
 
 impl Client {
-    pub fn new(num_nodes: usize, requests: Arc<Mutex<ReqList>>, socket: Arc<Mutex<UdpSocket>>) -> Self {
+    pub fn new(num_nodes: usize, requests: Arc<Mutex<ReqList>>, socket: UdpSocket) -> Self {
         // Check if num_nodes is ok
         let node_list_size = ID_BYTES * num_nodes as usize;
         if node_list_size > DATA_SIZE {
@@ -30,7 +30,7 @@ impl Client {
     pub fn num_nodes(&self) -> usize { self.num_nodes }
 
     fn send_bytes(&self, dst: SocketAddr, buf: &[u8]) {
-        match self.socket.lock().unwrap().send_to(buf, dst) {
+        match self.socket.send_to(buf, dst) {
             Ok(_) => {},
             Err(e) => println!("Failed to send bytes \"{}\"", e),
         }

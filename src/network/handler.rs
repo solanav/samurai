@@ -16,7 +16,7 @@ impl Handler {
     pub fn new(num_nodes: usize,
         requests: Arc<Mutex<ReqList>>,
         bucket_list: Arc<Mutex<BucketList>>,
-        socket: Arc<Mutex<UdpSocket>>,
+        socket: UdpSocket,
     ) -> Self {
         Handler {
             client: Client::new(num_nodes, Arc::clone(&requests), socket),

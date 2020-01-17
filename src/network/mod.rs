@@ -24,7 +24,7 @@ pub fn init_network() -> (Client, Server) {
             format!("127.0.0.1:{}", 1025)) {
             Ok(s) => {
                 s.set_read_timeout(Some(Duration::new(15, 0)));
-                socket = Arc::new(Mutex::new(s));
+                socket = s;
                 internal_port = p;
                 break;
             },
@@ -39,14 +39,14 @@ pub fn init_network() -> (Client, Server) {
     let client = Client::new(
         CLIENT_NUMNODES,
         Arc::clone(&requests),
-        Arc::clone(&socket),
+        socket.try_clone().unwrap(),
     );
 
     // Create server
     let server = Server::new(
         CLIENT_NUMNODES,
         Arc::clone(&requests),
-        Arc::clone(&socket),
+        socket.try_clone().unwrap(),
         internal_port,
     );
 

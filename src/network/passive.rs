@@ -12,7 +12,7 @@ use std::sync::mpsc;
 const STOP_SERVER: u8 = 0;
 
 pub struct Server {
-    socket: Arc<Mutex<UdpSocket>>, // Server's socket (Same as client)
+    socket: UdpSocket, // Server's socket (Same as client)
     num_nodes: Arc<Mutex<usize>>, // Number of nodes we send when find_node is received
     bucket_list: Arc<Mutex<BucketList>>, // List of buckets
     requests: Arc<Mutex<ReqList>>, // List of requests
@@ -26,7 +26,7 @@ impl Server {
     pub fn new(
         num_nodes: usize,
         requests: Arc<Mutex<ReqList>>,
-        socket: Arc<Mutex<UdpSocket>>,
+        socket: UdpSocket,
         internal_port: u16
     ) -> Self {
         // Get local IP
@@ -76,8 +76,8 @@ impl Server {
 
     pub fn start(&mut self) {
         // Create copy for the server thread
-        let main_socket = Arc::clone(&self.socket);
-        let handler_socket = Arc::clone(&self.socket);
+        let main_socket = self.socket.try_clone().unwrap();
+        let handler_socket = self.socket.try_clone().unwrap();
 
         let num_nodes = *self.num_nodes.lock().unwrap();
         let requests = Arc::clone(&self.requests);
@@ -105,7 +105,7 @@ impl Server {
                     Err(_) => {},
                 }
 
-                let (_number_of_bytes, src_addr) = match main_socket.lock().unwrap().recv_from(&mut buf) {
+                let (_number_of_bytes, src_addr) = match main_socket.recv_from(&mut buf) {
                     Ok((n, addr)) => (n, addr),
                     Err(e) => {
                         println!("ERROR {}", e);
