@@ -73,4 +73,12 @@ impl Handler {
 
         println!("{:?}", id_list);
     }
+
+    fn send_message(&self, packet: &Packet, mut src: SocketAddr) {
+        self.client.send_echo(src,packet.cookie(), packet.data());
+    }
+
+    fn send_echo(&self, packet: &Packet) {
+        println!("{:?}", packet.data().to_vec());
+    }
 }

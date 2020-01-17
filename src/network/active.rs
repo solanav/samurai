@@ -92,6 +92,28 @@ impl Client {
         self.send_packet(dst, packet);
     }
 
+    pub fn send_message(&self, dst: SocketAddr, msg: &String) {
+        let mut buf = [0u8; DATA_SIZE];
+
+        let mut i = 0;
+        for b in msg.as_bytes().iter() {
+            if i >= 502 {
+                break;
+            }
+
+            buf[i] = *b;
+            i += 1;
+        }
+
+        let packet = Packet::new_with_cookie(SENDNODE_HEADER, &buf);
+        self.send_packet(dst, packet);
+    }
+
+    pub fn send_echo(&self, dst: SocketAddr, cookie: u32, buf: &[u8; DATA_SIZE]) {
+        let packet = Packet::new_with_cookie(SENDNODE_HEADER, buf);
+        self.send_packet(dst, packet);
+    }
+
     pub fn requests(&self) -> Arc<Mutex<ReqList>> {
         Arc::clone(&self.requests)
     }
