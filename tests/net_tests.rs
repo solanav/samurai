@@ -1,43 +1,20 @@
-use samurai::network::active::Client;
-use samurai::network::passive::Server;
+use samurai::network::init_network;
 use samurai::network::packet::{Packet, TOTAL_SIZE};
-use samurai::types::id::Id;
 use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 use std::thread::sleep;
-use samurai::types::bucket_list::BucketList;
-use samurai::types::bucket::Bucket;
-use samurai::types::node::Node;
-
-const CLIENT_NUMNODES: usize = 10;
-
-macro_rules! zero_addr {
-    () => {
-        SocketAddr::new(IpAddr::V4(Ipv4Addr::new(0,0,0,0)), 1234)
-    }
-}
 
 #[test]
 fn test_sending() {
-    let mut bucket_list = BucketList::new();
-    bucket_list.add_bucket(Bucket::new(5, Id::zero(), Id::max()));
-    bucket_list.add_node(&Node::new(Id::rand(), true, zero_addr!()));
-    bucket_list.add_node(&Node::new(Id::rand(), false, zero_addr!()));
-    bucket_list.add_node(&Node::new(Id::rand(), false, zero_addr!()));
-
-    // Create client and server
-    let client = Client::new(CLIENT_NUMNODES);
-    let server = Server::new(CLIENT_NUMNODES, client.requests(), bucket_list);
-
+    let (client, mut server) = init_network();
     server.start();
 
     // Send UDP packet to the server
-    let addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 1024);
-    
+    let addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 1025);
+
     client.ping(addr);
     sleep(std::time::Duration::new(2, 0));
-    
-    client.find_node(addr, &Id::rand());
-    sleep(std::time::Duration::new(2, 0));
+
+    server.stop();
 }
 
 #[test]

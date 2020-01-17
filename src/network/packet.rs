@@ -15,6 +15,8 @@ pub const PING_HEADER: u16 = 0;
 pub const PONG_HEADER: u16 = 1;
 pub const FINDNODE_HEADER: u16 = 2;
 pub const SENDNODE_HEADER: u16 = 3;
+pub const SENDMSG_HEADER: u16 = 4;
+pub const SENDECHO_HEADER: u16 = 5;
 
 pub struct Packet {
     header: u16,           // Information about the contents of this message

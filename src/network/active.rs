@@ -1,47 +1,46 @@
-use rand::Rng;
 use std::net::SocketAddr;
 use std::net::UdpSocket;
 use crate::network::packet::{Packet, *};
 use crate::types::id::{Id, ID_BYTES};
 use std::sync::{Arc, Mutex};
-use std::collections::VecDeque;
 use crate::network::passive::ReqList;
 
 pub struct Client {
-    socket: UdpSocket, // Client's socket
+    socket: Arc<Mutex<UdpSocket>>, // Client's socket (Same as server)
     num_nodes: usize, // Number of nodes we send when someone asks
     requests: Arc<Mutex<ReqList>> // List of requests
 }
 
 impl Client {
-    pub fn new(num_nodes: usize) -> Self {
+    pub fn new(num_nodes: usize, requests: Arc<Mutex<ReqList>>, socket: Arc<Mutex<UdpSocket>>) -> Self {
+        // Check if num_nodes is ok
         let node_list_size = ID_BYTES * num_nodes as usize;
         if node_list_size > DATA_SIZE {
             panic!("Cannot save that many nodes on a packet");
         }
 
-        let mut rng = rand::thread_rng();
-        let socket = UdpSocket::bind(format!("127.0.0.1:{}", rng.gen_range(1024, 65536)))
-            .expect("couldn't bind to address");
-
+        // Create client
         Client {
             socket,
             num_nodes,
-            requests: Arc::new(Mutex::new(VecDeque::new())),
+            requests,
         }
     }
 
     pub fn num_nodes(&self) -> usize { self.num_nodes }
 
     fn send_bytes(&self, dst: SocketAddr, buf: &[u8]) {
-        self.socket
-            .connect(format!("{}", dst))
-            .expect("Connect function failed");
-
-        self.socket.send(buf).expect("Couldn't send message");
+        match self.socket.lock().unwrap().send_to(buf, dst) {
+            Ok(_) => {},
+            Err(e) => println!("Failed to send bytes \"{}\"", e),
+        }
     }
 
-    fn send_packet(&self, dst: SocketAddr, packet: Packet) {
+    fn send_request(&self, dst: SocketAddr, packet: Packet) {
+        self.send_bytes(dst, &packet.as_bytes());
+    }
+
+    fn send_response(&self, dst: SocketAddr, packet: Packet) {
         self.send_bytes(dst, &packet.as_bytes());
         self.requests
             .lock()
@@ -51,12 +50,12 @@ impl Client {
 
     pub fn ping(&self, dst: SocketAddr) {
         let packet = Packet::new_with_cookie(PING_HEADER, &[0; DATA_SIZE]);
-        self.send_packet(dst, packet);
+        self.send_request(dst, packet);
     }
 
     pub fn pong(&self, dst: SocketAddr, cookie: u32) {
         let packet = Packet::new(PONG_HEADER, cookie, &[0; DATA_SIZE]);
-        self.send_packet(dst, packet);
+        self.send_response(dst, packet);
     }
 
     pub fn find_node(&self, dst: SocketAddr, id: &Id) {
@@ -68,7 +67,7 @@ impl Client {
         }
 
         let packet = Packet::new_with_cookie(FINDNODE_HEADER, &buf);
-        self.send_packet(dst, packet);
+        self.send_request(dst, packet);
     }
 
     pub fn send_node(&self, dst: SocketAddr, cookie: u32, id_list: &Vec<Id>) {
@@ -89,7 +88,7 @@ impl Client {
         }
 
         let packet = Packet::new(SENDNODE_HEADER, cookie, &buf);
-        self.send_packet(dst, packet);
+        self.send_response(dst, packet);
     }
 
     pub fn send_message(&self, dst: SocketAddr, msg: &String) {
@@ -106,15 +105,11 @@ impl Client {
         }
 
         let packet = Packet::new_with_cookie(SENDNODE_HEADER, &buf);
-        self.send_packet(dst, packet);
+        self.send_request(dst, packet);
     }
 
     pub fn send_echo(&self, dst: SocketAddr, cookie: u32, buf: &[u8; DATA_SIZE]) {
-        let packet = Packet::new_with_cookie(SENDNODE_HEADER, buf);
-        self.send_packet(dst, packet);
-    }
-
-    pub fn requests(&self) -> Arc<Mutex<ReqList>> {
-        Arc::clone(&self.requests)
+        let packet = Packet::new(SENDNODE_HEADER, cookie, buf);
+        self.send_response(dst, packet);
     }
 }

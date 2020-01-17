@@ -7,35 +7,28 @@ use std::sync::{Arc, Mutex};
 use std::collections::VecDeque;
 use igd;
 use get_if_addrs;
+use std::sync::mpsc;
+
+const STOP_SERVER: u8 = 0;
 
 pub struct Server {
-    socket: Arc<Mutex<UdpSocket>>, // Server's socket
+    socket: Arc<Mutex<UdpSocket>>, // Server's socket (Same as client)
     num_nodes: Arc<Mutex<usize>>, // Number of nodes we send when find_node is received
     bucket_list: Arc<Mutex<BucketList>>, // List of buckets
     requests: Arc<Mutex<ReqList>>, // List of requests
+    message_sender: Option<mpsc::Sender<u8>>,
     port: u16, // External port
 }
 
 pub type ReqList = VecDeque<Packet>;
 
 impl Server {
-    pub fn new(num_nodes: usize, requests: Arc<Mutex<ReqList>>, bucket_list: BucketList) -> Self {
-        // Look for a random local port that is not being used
-        let socket: UdpSocket;
-        let internal_port: u16;
-        'outer: loop {
-            for p in 1024..65535 {
-                match UdpSocket::bind(format!("127.0.0.1:{}", p)) {
-                    Ok(s) => {
-                        socket = s;
-                        internal_port = p;
-                        break 'outer;
-                    }
-                    Err(_) => {}
-                };
-            }
-        }
-
+    pub fn new(
+        num_nodes: usize,
+        requests: Arc<Mutex<ReqList>>,
+        socket: Arc<Mutex<UdpSocket>>,
+        internal_port: u16
+    ) -> Self {
         // Get local IP
         let mut local_ip: Option<Ipv4Addr> = None;
         let ip_list = get_if_addrs::get_if_addrs().unwrap();
@@ -60,7 +53,7 @@ impl Server {
                 match gateway.add_any_port(
                     igd::PortMappingProtocol::UDP,
                     SocketAddrV4::new(local_ip.unwrap(), internal_port),
-                    60,
+                    10,
                     "Samurai") {
                     Err(ref e) => panic!("Error getting port: {}", e),
                     Ok(port) => external_port = port,
@@ -68,37 +61,77 @@ impl Server {
             }
         }
 
+        // Create the bucket list
+        let bucket_list = BucketList::new();
+
         Server {
-            socket: Arc::new(Mutex::new(socket)),
+            socket,
             num_nodes: Arc::new(Mutex::new(num_nodes)),
             bucket_list: Arc::new(Mutex::new(bucket_list)),
             requests,
+            message_sender: None,
             port: external_port,
         }
     }
 
-    pub fn start(&self) {
+    pub fn start(&mut self) {
         // Create copy for the server thread
-        let socket = Arc::clone(&self.socket);
-        let num_nodes = Arc::clone(&self.num_nodes);
+        let main_socket = Arc::clone(&self.socket);
+        let handler_socket = Arc::clone(&self.socket);
+
+        let num_nodes = *self.num_nodes.lock().unwrap();
         let requests = Arc::clone(&self.requests);
         let bucket_list = Arc::clone(&self.bucket_list);
+        let message_receiver;
+
+        let mp = mpsc::channel();
+        self.message_sender = Some(mp.0);
+        message_receiver = mp.1;
 
         // Launch thread with main loop
-        thread::spawn(move || loop {
+        thread::spawn(move || {
             let mut buf = [0; TOTAL_SIZE];
             let handler = Handler::new(
-                *num_nodes.lock().unwrap(),
-                Arc::clone(&requests),
-                Arc::clone(&bucket_list),
+                num_nodes,
+                requests,
+                bucket_list,
+                handler_socket,
             );
 
-            let (_number_of_bytes, src_addr) = socket.lock().unwrap()
-                .recv_from(&mut buf)
-                .expect("Did not receive data");
+            // Msg handler loop
+            loop {
+                match message_receiver.try_recv() {
+                    Ok(msg) => if msg == STOP_SERVER { break; },
+                    Err(_) => {},
+                }
 
-            let packet = Packet::from_bytes(&buf);
-            handler.switch(&packet, src_addr);
+                let (_number_of_bytes, src_addr) = match main_socket.lock().unwrap().recv_from(&mut buf) {
+                    Ok((n, addr)) => (n, addr),
+                    Err(e) => {
+                        println!("ERROR {}", e);
+                        continue;
+                    },
+                };
+
+                let packet = Packet::from_bytes(&buf);
+                handler.switch(&packet, src_addr);
+            }
         });
+    }
+
+    pub fn stop(&self) {
+        match &self.message_sender {
+            Some(ms) => {
+                match ms.send(STOP_SERVER) {
+                    Ok(_) => {},
+                    Err(e) => println!("Failed to send stop message to server {:?}", e),
+                }
+            },
+            None => return,
+        };
+    }
+
+    pub fn port(&self) -> u16 {
+        self.port
     }
 }
