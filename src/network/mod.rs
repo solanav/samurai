@@ -20,15 +20,12 @@ pub fn init_network() -> (Client, Server) {
     let internal_port;
     loop {
         let p = rng.gen_range(1024, 65535);
-        match UdpSocket::bind(
-            format!("127.0.0.1:{}", 1025)) {
-            Ok(s) => {
-                s.set_read_timeout(Some(Duration::new(15, 0)));
-                socket = s;
-                internal_port = p;
-                break;
-            },
-            Err(_) => {},
+
+        if let Ok(s) = UdpSocket::bind(format!("127.0.0.1:{}", 1025)) {
+            s.set_read_timeout(Some(Duration::new(15, 0)));
+            socket = s;
+            internal_port = p;
+            break;
         }
     }
 

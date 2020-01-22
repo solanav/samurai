@@ -25,17 +25,15 @@ fn test_bucket_list() {
     let mut bucket_list = BucketList::new(MAX_BUCKETS, BUCKET_SIZE);
 
     // Add local node
-    match bucket_list.add_node(&Node::new(Id::rand(), true, zero_addr!())) {
-        Ok(_) => {},
-        Err(_) => panic!("Failed to add random node to bucket list"),
-    };
+    if let Err(e) = bucket_list.add_node(&Node::new(Id::rand(), true, zero_addr!())) {
+        panic!("Failed to add random node to bucket list \"{}\"", e);
+    }
 
     // Add more nodes
     for _i in 0..5 {
-        match bucket_list.add_node(&Node::new(Id::rand(), false, zero_addr!())) {
-            Ok(_) => {},
-            Err(_) => panic!("Failed to add random node to bucket list"),
-        };
+        if let Err(e) = bucket_list.add_node(&Node::new(Id::rand(), false, zero_addr!())) {
+            panic!("Failed to add random node to bucket list \"{}\"", e);
+        }
     }
     
     println!("{:?}", bucket_list);
@@ -46,17 +44,15 @@ fn test_xor_distance() {
     let mut bucket_list = BucketList::new(MAX_BUCKETS, BUCKET_SIZE);
 
     // Add local node
-    match bucket_list.add_node(&Node::new(Id::rand(), true, zero_addr!())) {
-        Ok(_) => {},
-        Err(_) => panic!("Failed to add random node to bucket list"),
-    };
+    if let Err(e) = bucket_list.add_node(&Node::new(Id::rand(), true, zero_addr!())) {
+        panic!("Failed to add random node to bucket list \"{}\"", e);
+    }
 
     // Add more nodes
     for _i in 0..5 {
-        match bucket_list.add_node(&Node::new(Id::rand(), false, zero_addr!())) {
-            Ok(_) => {},
-            Err(_) => panic!("Failed to add random node to bucket list"),
-        };
+        if let Err(e) = bucket_list.add_node(&Node::new(Id::rand(), false, zero_addr!())) {
+            panic!("Failed to add random node to bucket list \"{}\"", e);
+        }
     }
 
     println!("{:?}", bucket_list);

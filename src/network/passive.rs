@@ -34,12 +34,9 @@ impl Server {
         let mut local_ip: Option<Ipv4Addr> = None;
         let ip_list = get_if_addrs::get_if_addrs().unwrap();
         for ip in ip_list.iter() {
-            match ip.ip() {
-                IpAddr::V4(ip) => {
-                    local_ip = Some(ip);
-                    break;
-                },
-                IpAddr::V6(_) => {},
+            if let IpAddr::V4(ip) = ip.ip() {
+                local_ip = Some(ip);
+                break;
             };
         }
         if local_ip.is_none() {
@@ -101,9 +98,10 @@ impl Server {
 
             // Msg handler loop
             loop {
-                match message_receiver.try_recv() {
-                    Ok(msg) => if msg == STOP_SERVER { break; },
-                    Err(_) => {},
+                if let Ok(msg) = message_receiver.try_recv() {
+                    if msg == STOP_SERVER {
+                        break;
+                    }
                 }
 
                 let (_number_of_bytes, src_addr) = match main_socket.recv_from(&mut buf) {
@@ -123,9 +121,8 @@ impl Server {
     pub fn stop(&self) {
         match &self.message_sender {
             Some(ms) => {
-                match ms.send(STOP_SERVER) {
-                    Ok(_) => {},
-                    Err(e) => println!("Failed to send stop message to server {:?}", e),
+                if let Err(e) = msg.send(STOP_SERVER) {
+                    println!("Failed to send stop message to server {:?}", e);
                 }
             },
             None => return,

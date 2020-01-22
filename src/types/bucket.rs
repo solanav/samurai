@@ -39,12 +39,8 @@ impl Bucket {
     }
 
     pub fn rm_node(&mut self, id: Id) {
-        match self.node_list.iter().position(|&i| i.id() == id) {
-            Some(i) => {
-                self.node_list.remove(i);
-                ()
-            }
-            None => {}
+        if let Some(i) = self.node_list.iter().position(|&i| i.id() == id) {
+            self.node_list.remove(i);
         }
     }
 

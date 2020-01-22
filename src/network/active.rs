@@ -30,9 +30,8 @@ impl Client {
     pub fn num_nodes(&self) -> usize { self.num_nodes }
 
     fn send_bytes(&self, dst: SocketAddr, buf: &[u8]) {
-        match self.socket.send_to(buf, dst) {
-            Ok(_) => {},
-            Err(e) => println!("Failed to send bytes \"{}\"", e),
+        if let Err(e) = self.socket.send_to(buf, dst) {
+            println!("Failed to send bytes \"{}\"", e);
         }
     }
 
