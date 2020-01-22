@@ -32,7 +32,7 @@ pub fn init_network() -> (Client, Server) {
         }
     }
 
-    println!("{:?}", internal_port);
+    println!("aa{:?}", internal_port);
     let requests = Arc::new(Mutex::new(RequestList::new()));
 
     // Create client

@@ -1,7 +1,9 @@
 use crate::types::id::Id;
 use crate::types::node::Node;
 use std::fmt;
+use serde::{Deserialize, Serialize};
 
+#[derive(Serialize, Deserialize)]
 pub struct Bucket {
     node_list: Vec<Node>,
     start_id: Id,
@@ -106,7 +108,7 @@ impl Bucket {
         *id > self.start_id && *id < self.end_id
     }
 
-    pub fn node_list(&self) -> &Vec<Node> {
+    pub fn nodes(&self) -> &Vec<Node> {
         &self.node_list
     }
 }

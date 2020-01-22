@@ -8,6 +8,7 @@ use igd;
 use get_if_addrs;
 use std::sync::mpsc;
 use crate::types::request_list::RequestList;
+use crate::bootstrapping::file::{save, load};
 
 static MAX_BUCKETS: usize = 10;
 static BUCKET_SIZE: usize = 10;
@@ -133,5 +134,19 @@ impl Server {
 
     pub fn port(&self) -> u16 {
         self.port
+    }
+
+    pub fn save(&self, path: &str) {
+        let node_list = self.bucket_list.lock().unwrap().node_list();
+        save(path, &node_list);
+        println!("{:?}", self.bucket_list.lock().unwrap());
+    }
+
+    pub fn load(&self, path: &str) {
+        let bucket_list = load(path);
+        for node in bucket_list.iter() {
+            self.bucket_list.lock().unwrap().add_node(node);
+        }
+        println!("{:?}", bucket_list);
     }
 }

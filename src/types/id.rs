@@ -2,12 +2,13 @@ use rand::random;
 use std::cmp::{Eq, Ordering, PartialEq};
 use std::fmt;
 use std::ops::{Add, AddAssign, Sub, SubAssign, BitXor};
+use serde::{Deserialize, Serialize};
 
 pub const ID_BYTES: usize = 32;
 pub const HIGH_BITS: usize = 128;
 pub const LOW_BITS: usize = 128;
 
-#[derive(Eq, PartialEq, Clone, Copy)]
+#[derive(Eq, PartialEq, Clone, Copy, Serialize, Deserialize)]
 pub struct Id {
     high: u128,
     low: u128,

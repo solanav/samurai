@@ -1,8 +1,9 @@
 use crate::types::id::Id;
 use std::fmt;
 use std::net::SocketAddr;
+use serde::{Deserialize, Serialize};
 
-#[derive(fmt::Debug, Copy, Clone)]
+#[derive(fmt::Debug, Copy, Clone, Serialize, Deserialize)]
 pub struct Node {
     id: Id, // Id of the node
     local: bool, // Is this node us?
@@ -18,7 +19,7 @@ impl Node {
         }
     }
 
-    pub fn is_local(self) -> bool {
+    pub fn is_local(&self) -> bool {
         self.local
     }
 

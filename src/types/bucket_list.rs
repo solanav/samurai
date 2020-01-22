@@ -2,8 +2,9 @@ use crate::types::bucket::Bucket;
 use crate::types::id::Id;
 use crate::types::node::Node;
 use std::fmt;
+use serde::{Deserialize, Serialize};
 
-
+#[derive(Serialize, Deserialize)]
 pub struct BucketList {
     buckets: Vec<Bucket>,
     max_buckets: usize,
@@ -24,7 +25,7 @@ impl BucketList {
         // Create a list of all nodes
         let mut global_node_list = Vec::new();
         for bucket in self.buckets.iter() {
-            global_node_list.append(&mut bucket.node_list().clone());
+            global_node_list.append(&mut bucket.nodes().clone());
         }
 
         // Create vector of xor distances and their corresponding ID
@@ -63,6 +64,17 @@ impl BucketList {
     pub fn empty_space(&self) -> bool {
         // Call this function to know if you can add more nodes
         self.buckets.len() < self.max_buckets
+    }
+
+    pub fn node_list(&self) -> Vec<Node> {
+        let mut node_list = Vec::new();
+        for bucket in self.buckets.iter() {
+            for node in bucket.nodes().iter() {
+                node_list.push(*node);
+            }
+        }
+
+        node_list
     }
 }
 
