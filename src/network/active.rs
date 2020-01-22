@@ -3,16 +3,16 @@ use std::net::UdpSocket;
 use crate::network::packet::{Packet, *};
 use crate::types::id::{Id, ID_BYTES};
 use std::sync::{Arc, Mutex};
-use crate::network::passive::ReqList;
+use crate::types::request_list::RequestList;
 
 pub struct Client {
     socket: UdpSocket, // Client's socket (Same as server)
     num_nodes: usize, // Number of nodes we send when someone asks
-    requests: Arc<Mutex<ReqList>> // List of requests
+    requests: Arc<Mutex<RequestList>> // List of requests
 }
 
 impl Client {
-    pub fn new(num_nodes: usize, requests: Arc<Mutex<ReqList>>, socket: UdpSocket) -> Self {
+    pub fn new(num_nodes: usize, requests: Arc<Mutex<RequestList>>, socket: UdpSocket) -> Self {
         // Check if num_nodes is ok
         let node_list_size = ID_BYTES * num_nodes as usize;
         if node_list_size > DATA_SIZE {
@@ -45,7 +45,7 @@ impl Client {
         self.requests
             .lock()
             .unwrap()
-            .push_back(packet);
+            .add(packet);
     }
 
     pub fn ping(&self, dst: SocketAddr) {

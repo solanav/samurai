@@ -7,7 +7,6 @@ use std::fmt;
 pub struct BucketList {
     buckets: Vec<Bucket>,
     max_buckets: usize,
-    max_per_bucket: usize,
 }
 
 impl BucketList {
@@ -18,7 +17,6 @@ impl BucketList {
         BucketList {
             buckets,
             max_buckets,
-            max_per_bucket,
         }
     }
 
@@ -44,6 +42,7 @@ impl BucketList {
     }
 
     fn find_bucket(&self, id: &Id) -> usize {
+        // Find the bucket for a given node id
         let mut i: usize = 0;
         for bucket in self.buckets.iter() {
             if bucket.fits(id) {

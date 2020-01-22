@@ -2,21 +2,22 @@ use crate::network::active::Client;
 use crate::network::packet::{self, Packet, DATA_SIZE};
 use std::net::{SocketAddr, UdpSocket};
 use crate::types::id::{Id, ID_BYTES};
-use crate::network::passive::ReqList;
 use crate::types::bucket_list::BucketList;
 use std::sync::{Arc, Mutex};
+use crate::types::request_list::RequestList;
+use crate::types::node::Node;
 
 pub struct Handler {
     client: Client, // Used to respond to messages
     bucket_list: Arc<Mutex<BucketList>>,
-    requests: Arc<Mutex<ReqList>>,
+    requests: Arc<Mutex<RequestList>>,
 }
 
 impl Handler {
     pub fn new(num_nodes: usize,
-        requests: Arc<Mutex<ReqList>>,
-        bucket_list: Arc<Mutex<BucketList>>,
-        socket: UdpSocket,
+               requests: Arc<Mutex<RequestList>>,
+               bucket_list: Arc<Mutex<BucketList>>,
+               socket: UdpSocket,
     ) -> Self {
         Handler {
             client: Client::new(num_nodes, Arc::clone(&requests), socket),
@@ -28,7 +29,7 @@ impl Handler {
     pub fn switch(&self, packet: &Packet, src: SocketAddr) {
         match packet.header() {
             packet::PING_HEADER => self.ping(packet, src),
-            packet::PONG_HEADER => self.pong(packet),
+            packet::PONG_HEADER => self.pong(packet, src),
             packet::FINDNODE_HEADER => self.find_node(packet, src),
             packet::SENDNODE_HEADER => self.send_node(packet),
             packet::SENDMSG_HEADER => self.send_message(packet, src),
@@ -41,19 +42,16 @@ impl Handler {
         self.client.pong(src, packet.cookie());
     }
 
-    fn pong(&self, packet: &Packet) {
+    fn pong(&self, packet: &Packet, src: SocketAddr) {
         let mut req_list = self.requests.lock().unwrap();
-        let mut rm_list = Vec::new();
-        for i in 0..req_list.len() {
-            if req_list[i].cookie() == packet.cookie() {
-                rm_list.push(i);
-                println!("We found the original PING with cookie {}", req_list[i].cookie());
-                break;
-            }
-        }
-
-        for i in rm_list {
-            req_list.remove(i);
+        match req_list.find_cookie(packet.cookie()) {
+            None => println!("Not found request for this pong, dropping..."),
+            Some(i) => {
+                // If we find it, add node to bucket list and remove from requests
+                self.bucket_list.lock().unwrap()
+                    .add_node(&Node::new(Id::rand(), false, src));
+                req_list.rm(i);
+            },
         }
     }
 

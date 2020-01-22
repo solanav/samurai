@@ -1,10 +1,10 @@
 use std::net::UdpSocket;
 use rand::Rng;
 use std::sync::{Arc, Mutex};
-use std::collections::VecDeque;
 use crate::network::active::Client;
 use crate::network::passive::Server;
 use std::time::Duration;
+use crate::types::request_list::RequestList;
 
 pub mod packet;
 pub mod active;
@@ -33,7 +33,7 @@ pub fn init_network() -> (Client, Server) {
     }
 
     println!("{:?}", internal_port);
-    let requests = Arc::new(Mutex::new(VecDeque::new()));
+    let requests = Arc::new(Mutex::new(RequestList::new()));
 
     // Create client
     let client = Client::new(

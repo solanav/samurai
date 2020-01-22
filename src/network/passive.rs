@@ -4,10 +4,10 @@ use crate::types::bucket_list::BucketList;
 use std::net::{UdpSocket, Ipv4Addr, SocketAddrV4, IpAddr};
 use std::thread;
 use std::sync::{Arc, Mutex};
-use std::collections::VecDeque;
 use igd;
 use get_if_addrs;
 use std::sync::mpsc;
+use crate::types::request_list::RequestList;
 
 static MAX_BUCKETS: usize = 10;
 static BUCKET_SIZE: usize = 10;
@@ -17,17 +17,15 @@ pub struct Server {
     socket: UdpSocket, // Server's socket (Same as client)
     num_nodes: Arc<Mutex<usize>>, // Number of nodes we send when find_node is received
     bucket_list: Arc<Mutex<BucketList>>, // List of buckets
-    requests: Arc<Mutex<ReqList>>, // List of requests
+    requests: Arc<Mutex<RequestList>>, // List of requests
     message_sender: Option<mpsc::Sender<u8>>,
     port: u16, // External port
 }
 
-pub type ReqList = VecDeque<Packet>;
-
 impl Server {
     pub fn new(
         num_nodes: usize,
-        requests: Arc<Mutex<ReqList>>,
+        requests: Arc<Mutex<RequestList>>,
         socket: UdpSocket,
         internal_port: u16
     ) -> Self {
