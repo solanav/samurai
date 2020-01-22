@@ -6,12 +6,19 @@ use std::fmt;
 
 pub struct BucketList {
     buckets: Vec<Bucket>,
+    max_buckets: usize,
+    max_per_bucket: usize,
 }
 
 impl BucketList {
-    pub fn new() -> Self {
+    pub fn new(max_buckets: usize, max_per_bucket: usize) -> Self {
+        let mut buckets = Vec::new();
+        buckets.push(Bucket::new(max_per_bucket, Id::zero(), Id::max()));
+
         BucketList {
-            buckets: Vec::new(),
+            buckets,
+            max_buckets,
+            max_per_bucket,
         }
     }
 
@@ -36,14 +43,6 @@ impl BucketList {
             .collect()
     }
 
-    pub fn add_bucket(&mut self, bucket: Bucket) {
-        self.buckets.push(bucket);
-    }
-
-    pub fn rm_bucket(&mut self, i: usize) {
-        self.buckets.remove(i);
-    }
-
     fn find_bucket(&self, id: &Id) -> usize {
         let mut i: usize = 0;
         for bucket in self.buckets.iter() {
@@ -60,6 +59,11 @@ impl BucketList {
     pub fn add_node(&mut self, node: &Node) -> Result<(), &'static str> {
         let i = self.find_bucket(&node.id());
         self.buckets[i].add_node(node)
+    }
+
+    pub fn empty_space(&self) -> bool {
+        // Call this function to know if you can add more nodes
+        self.buckets.len() < self.max_buckets
     }
 }
 

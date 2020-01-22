@@ -9,6 +9,8 @@ use igd;
 use get_if_addrs;
 use std::sync::mpsc;
 
+static MAX_BUCKETS: usize = 10;
+static BUCKET_SIZE: usize = 10;
 const STOP_SERVER: u8 = 0;
 
 pub struct Server {
@@ -62,7 +64,7 @@ impl Server {
         }
 
         // Create the bucket list
-        let bucket_list = BucketList::new();
+        let bucket_list = BucketList::new(MAX_BUCKETS, BUCKET_SIZE);
 
         Server {
             socket,

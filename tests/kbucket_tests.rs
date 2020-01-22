@@ -4,6 +4,7 @@ use samurai::types::node::Node;
 use samurai::types::id::Id;
 use std::net::{Ipv4Addr, SocketAddr, IpAddr};
 
+static MAX_BUCKETS: usize = 10;
 static BUCKET_SIZE: usize = 10;
 
 macro_rules! zero_addr {
@@ -21,9 +22,8 @@ fn test_add() {
 
 #[test]
 fn test_bucket_list() {
-    let mut bucket_list: BucketList = BucketList::new();
-    bucket_list.add_bucket(Bucket::new(BUCKET_SIZE, Id::zero(), Id::max()));
-    
+    let mut bucket_list = BucketList::new(MAX_BUCKETS, BUCKET_SIZE);
+
     // Add local node
     match bucket_list.add_node(&Node::new(Id::rand(), true, zero_addr!())) {
         Ok(_) => {},
@@ -43,8 +43,7 @@ fn test_bucket_list() {
 
 #[test]
 fn test_xor_distance() {
-    let mut bucket_list = BucketList::new();
-    bucket_list.add_bucket(Bucket::new(BUCKET_SIZE, Id::zero(), Id::max()));
+    let mut bucket_list = BucketList::new(MAX_BUCKETS, BUCKET_SIZE);
 
     // Add local node
     match bucket_list.add_node(&Node::new(Id::rand(), true, zero_addr!())) {
