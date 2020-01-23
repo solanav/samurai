@@ -120,7 +120,7 @@ impl Server {
 
     pub fn stop(&self) {
         match &self.message_sender {
-            Some(ms) => {
+            Some(msg) => {
                 if let Err(e) = msg.send(STOP_SERVER) {
                     println!("Failed to send stop message to server {:?}", e);
                 }
