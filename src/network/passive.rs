@@ -1,36 +1,27 @@
 use crate::network::handler::Handler;
-use crate::network::packet::{Packet, TOTAL_SIZE};
 use crate::types::bucket_list::BucketList;
-use std::net::{UdpSocket, Ipv4Addr, SocketAddrV4, IpAddr};
-use std::thread;
-use std::sync::{Arc, Mutex};
+use crate::bootstrapping::file::{save, load};
+
+use std::net::{Ipv4Addr, SocketAddrV4, IpAddr, TcpListener};
 use igd;
 use get_if_addrs;
-use std::sync::mpsc;
-use crate::types::request_list::RequestList;
-use crate::bootstrapping::file::{save, load};
+use rand::Rng;
+use std::sync::{Arc, Mutex};
 
 static MAX_BUCKETS: usize = 10;
 static BUCKET_SIZE: usize = 10;
 const STOP_SERVER: u8 = 0;
 
 pub struct Server {
-    socket: UdpSocket, // Server's socket (Same as client)
-    num_nodes: Arc<Mutex<usize>>, // Number of nodes we send when find_node is received
+    listener: TcpListener, // Server's socket
+    num_nodes: usize, // Number of nodes we send when find_node is received
     bucket_list: Arc<Mutex<BucketList>>, // List of buckets
-    requests: Arc<Mutex<RequestList>>, // List of requests
-    message_sender: Option<mpsc::Sender<u8>>,
     port: u16, // External port
 }
 
 impl Server {
-    pub fn new(
-        num_nodes: usize,
-        requests: Arc<Mutex<RequestList>>,
-        socket: UdpSocket,
-        internal_port: u16
-    ) -> Self {
-        // Get local IP
+    pub fn new(num_nodes: usize) -> Self {
+        // Get internal IP
         let mut local_ip: Option<Ipv4Addr> = None;
         let ip_list = get_if_addrs::get_if_addrs().unwrap();
         for ip in ip_list.iter() {
@@ -43,8 +34,22 @@ impl Server {
             panic!("Failed to get local IPv4");
         }
 
-        // Get a random external port with UPnP
-        let external_port: u16;
+        // Start listening on a random internal port
+        let mut rng = rand::thread_rng();
+        let listener;
+        let internal_port;
+        loop {
+            let p = rng.gen_range(1024, 65535);
+
+            if let Ok(l) = TcpListener::bind(format!("127.0.0.1:{}", p)) {
+                listener = l;
+                internal_port = p;
+                break;
+            }
+        }
+
+        // Get a random external port with UPnP redirected to our internal port
+        let port: u16;
         match igd::search_gateway(Default::default()) {
             Err(ref err) => panic!("Error: {}", err),
             Ok(gateway) => {
@@ -54,79 +59,35 @@ impl Server {
                     10,
                     "Samurai") {
                     Err(ref e) => panic!("Error getting port: {}", e),
-                    Ok(port) => external_port = port,
+                    Ok(p) => port = p,
                 }
             }
         }
+
+        println!("internal port > {}", internal_port);
 
         // Create the bucket list
         let bucket_list = BucketList::new(MAX_BUCKETS, BUCKET_SIZE);
 
         Server {
-            socket,
-            num_nodes: Arc::new(Mutex::new(num_nodes)),
+            listener,
+            num_nodes,
             bucket_list: Arc::new(Mutex::new(bucket_list)),
-            requests,
-            message_sender: None,
-            port: external_port,
+            port,
         }
     }
 
     pub fn start(&mut self) {
-        // Create copy for the server thread
-        let main_socket = self.socket.try_clone().unwrap();
-        let handler_socket = self.socket.try_clone().unwrap();
 
-        let num_nodes = *self.num_nodes.lock().unwrap();
-        let requests = Arc::clone(&self.requests);
-        let bucket_list = Arc::clone(&self.bucket_list);
-        let message_receiver;
-
-        let mp = mpsc::channel();
-        self.message_sender = Some(mp.0);
-        message_receiver = mp.1;
-
-        // Launch thread with main loop
-        thread::spawn(move || {
-            let mut buf = [0; TOTAL_SIZE];
-            let handler = Handler::new(
-                num_nodes,
-                requests,
-                bucket_list,
-                handler_socket,
-            );
-
-            // Msg handler loop
-            loop {
-                if let Ok(msg) = message_receiver.try_recv() {
-                    if msg == STOP_SERVER {
-                        break;
-                    }
-                }
-
-                let (_number_of_bytes, src_addr) = match main_socket.recv_from(&mut buf) {
-                    Ok((n, addr)) => (n, addr),
-                    Err(e) => {
-                        println!("ERROR {}", e);
-                        continue;
-                    },
-                };
-
-                let packet = Packet::from_bytes(&buf);
-                handler.switch(&packet, src_addr);
-            }
-        });
-    }
-
-    pub fn stop(&self) {
-        match &self.message_sender {
-            Some(msg) => {
-                if let Err(e) = msg.send(STOP_SERVER) {
-                    println!("Failed to send stop message to server {:?}", e);
-                }
-            },
-            None => return,
-        };
+        // Msg handler loop
+        loop {
+            // Check for new messages
+            if let Ok((stream, addr)) = self.listener.accept() {
+                println!("Accepted connection with {}", addr);
+                let mut handler = Handler::new(stream, self.bucket_list.clone());
+                handler.start();
+            };
+        }
     }
 
     pub fn port(&self) -> u16 {
@@ -136,7 +97,7 @@ impl Server {
     pub fn save(&self, path: &str) {
         let node_list = self.bucket_list.lock().unwrap().node_list();
         save(path, &node_list);
-        println!("{:?}", self.bucket_list.lock().unwrap());
+        println!("{:?}", self.bucket_list);
     }
 
     pub fn load(&self, path: &str) {

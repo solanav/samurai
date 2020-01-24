@@ -1,61 +1,49 @@
-use crate::network::active::Client;
-use crate::network::packet::{self, Packet, DATA_SIZE};
-use std::net::{SocketAddr, UdpSocket};
+use crate::network::packet::{self, Packet, DATA_SIZE, TOTAL_SIZE};
+use std::net::TcpStream;
 use crate::types::id::{Id, ID_BYTES};
 use crate::types::bucket_list::BucketList;
 use std::sync::{Arc, Mutex};
-use crate::types::request_list::RequestList;
-use crate::types::node::Node;
+use std::io::Read;
+use crate::network::active;
 
 pub struct Handler {
-    client: Client, // Used to respond to messages
-    bucket_list: Arc<Mutex<BucketList>>,
-    requests: Arc<Mutex<RequestList>>,
+    stream: TcpStream, // To send messages
+    bucket_list: Arc<Mutex<BucketList>>, // To keep peers and add new ones
 }
 
 impl Handler {
-    pub fn new(num_nodes: usize,
-               requests: Arc<Mutex<RequestList>>,
-               bucket_list: Arc<Mutex<BucketList>>,
-               socket: UdpSocket,
-    ) -> Self {
+    pub fn new(stream: TcpStream, bucket_list: Arc<Mutex<BucketList>>) -> Self {
         Handler {
-            client: Client::new(num_nodes, Arc::clone(&requests), socket),
+            stream,
             bucket_list,
-            requests,
         }
     }
 
-    pub fn switch(&self, packet: &Packet, src: SocketAddr) {
+    pub fn start(&mut self) {
+        let mut buf= [0u8; TOTAL_SIZE];
+        self.stream.read(&mut buf);
+        let packet = Packet::from_bytes(&buf);
+
         match packet.header() {
-            packet::PING_HEADER => self.ping(packet, src),
-            packet::PONG_HEADER => self.pong(packet, src),
-            packet::FINDNODE_HEADER => self.find_node(packet, src),
-            packet::SENDNODE_HEADER => self.send_node(packet),
-            packet::SENDMSG_HEADER => self.send_message(packet, src),
-            packet::SENDECHO_HEADER => self.send_echo(packet),
+            packet::PING_HEADER => self.ping(&packet),
+            packet::PONG_HEADER => self.pong(&packet),
+            packet::FINDNODE_HEADER => self.find_node(&packet),
+            packet::SENDNODE_HEADER => self.send_node(&packet),
+            packet::SENDMSG_HEADER => self.send_message(&packet),
+            packet::SENDECHO_HEADER => self.send_echo(&packet),
             _ => println!("Header not found, dropping packet"),
         }
     }
 
-    fn ping(&self, packet: &Packet, src: SocketAddr) {
-        self.client.pong(src, packet.cookie());
+    fn ping(&mut self, packet: &Packet) {
+        active::pong(&mut self.stream, packet.cookie());
     }
 
-    fn pong(&self, packet: &Packet, src: SocketAddr) {
-        let mut req_list = self.requests.lock().unwrap();
-        match req_list.find_cookie(packet.cookie()) {
-            None => println!("Not found request for this pong, dropping..."),
-            Some(i) => {
-                // If we find it, add node to bucket list and remove from requests
-                self.bucket_list.lock().unwrap()
-                    .add_node(&Node::new(Id::rand(), false, src));
-                req_list.rm(i);
-            },
-        }
+    fn pong(&self, packet: &Packet) {
+        println!("received pong {:?}", packet);
     }
 
-    fn find_node(&self, packet: &Packet, src: SocketAddr) {
+    fn find_node(&mut self, packet: &Packet) {
         // Extract the ID from the packet
         let mut id_bytes = [0u8; ID_BYTES];
         id_bytes.copy_from_slice(&packet.data()[..ID_BYTES]);
@@ -66,10 +54,10 @@ impl Handler {
 
         println!("{:?}", id_list);
 
-        self.client.send_node(src, packet.cookie(), &id_list);
+        active::send_node(&mut self.stream, packet.cookie(), &id_list);
     }
 
-    fn send_node(&self, packet: &Packet) {
+    fn send_node(&mut self, packet: &Packet) {
         let mut id_list: Vec<Id> = Vec::new();
 
         // Extract the ID from send_node
@@ -82,11 +70,11 @@ impl Handler {
         println!("{:?}", id_list);
     }
 
-    fn send_message(&self, packet: &Packet, src: SocketAddr) {
-        self.client.send_echo(src,packet.cookie(), packet.data());
+    fn send_message(&mut self, packet: &Packet) {
+        active::send_echo(&mut self.stream, packet.cookie(), packet.data());
     }
 
-    fn send_echo(&self, packet: &Packet) {
+    fn send_echo(&mut self, packet: &Packet) {
         println!("{:?}", packet.data().to_vec());
     }
 }

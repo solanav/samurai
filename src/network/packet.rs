@@ -42,10 +42,6 @@ impl Packet {
     }
 
     pub fn from_bytes(buf: &[u8; TOTAL_SIZE]) -> Self {
-        if buf.len() != TOTAL_SIZE {
-            panic!("Packet has to be of size TOTAL_SIZE")
-        }
-
         // Copy raw data to packet
         let mut data: [u8; DATA_SIZE] = [0; DATA_SIZE];
         data.copy_from_slice(&buf[DATA_OFFSET..DATA_OFFSET + DATA_SIZE]);
