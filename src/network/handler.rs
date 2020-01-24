@@ -20,18 +20,26 @@ impl Handler {
     }
 
     pub fn start(&mut self) {
-        let mut buf= [0u8; TOTAL_SIZE];
-        self.stream.read(&mut buf);
-        let packet = Packet::from_bytes(&buf);
+        // Keep going until we get a timeout
+        loop {
+            let mut buf= [0u8; TOTAL_SIZE];
 
-        match packet.header() {
-            packet::PING_HEADER => self.ping(&packet),
-            packet::PONG_HEADER => self.pong(&packet),
-            packet::FINDNODE_HEADER => self.find_node(&packet),
-            packet::SENDNODE_HEADER => self.send_node(&packet),
-            packet::SENDMSG_HEADER => self.send_message(&packet),
-            packet::SENDECHO_HEADER => self.send_echo(&packet),
-            _ => println!("Header not found, dropping packet"),
+            if let Err(e) = self.stream.read(&mut buf) {
+                println!("Timeout on handler, closing connection");
+                break;
+            };
+
+            let packet = Packet::from_bytes(&buf);
+
+            match packet.header() {
+                packet::PING_HEADER => self.ping(&packet),
+                packet::PONG_HEADER => self.pong(&packet),
+                packet::FINDNODE_HEADER => self.find_node(&packet),
+                packet::SENDNODE_HEADER => self.send_node(&packet),
+                packet::SENDMSG_HEADER => self.send_message(&packet),
+                packet::SENDECHO_HEADER => self.send_echo(&packet),
+                _ => println!("Header not found, dropping packet"),
+            }
         }
     }
 

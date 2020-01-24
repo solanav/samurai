@@ -7,6 +7,7 @@ use igd;
 use get_if_addrs;
 use rand::Rng;
 use std::sync::{Arc, Mutex};
+use std::time::Duration;
 
 static MAX_BUCKETS: usize = 10;
 static BUCKET_SIZE: usize = 10;
@@ -78,16 +79,14 @@ impl Server {
     }
 
     pub fn start(&mut self) {
-
-        // Msg handler loop
-        loop {
-            // Check for new messages
-            if let Ok((stream, addr)) = self.listener.accept() {
-                println!("Accepted connection with {}", addr);
+        for s in self.listener.incoming() {
+            if let Ok(stream) = s {
+                println!("Accepted connection with {}", stream.peer_addr().unwrap());
+                stream.set_read_timeout(Some(Duration::from_secs(10)));
                 let mut handler = Handler::new(stream, self.bucket_list.clone());
                 handler.start();
-            };
-        }
+            }
+        };
     }
 
     pub fn port(&self) -> u16 {
