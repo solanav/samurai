@@ -24,7 +24,7 @@ impl Handler {
         loop {
             let mut buf= [0u8; TOTAL_SIZE];
 
-            if let Err(e) = self.stream.read(&mut buf) {
+            if let Err(_) = self.stream.read(&mut buf) {
                 println!("Timeout on handler, closing connection");
                 break;
             };

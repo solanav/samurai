@@ -8,20 +8,19 @@ use get_if_addrs;
 use rand::Rng;
 use std::sync::{Arc, Mutex};
 use std::time::Duration;
+use std::thread;
 
 static MAX_BUCKETS: usize = 10;
 static BUCKET_SIZE: usize = 10;
-const STOP_SERVER: u8 = 0;
 
 pub struct Server {
     listener: TcpListener, // Server's socket
-    num_nodes: usize, // Number of nodes we send when find_node is received
     bucket_list: Arc<Mutex<BucketList>>, // List of buckets
     port: u16, // External port
 }
 
 impl Server {
-    pub fn new(num_nodes: usize) -> Self {
+    pub fn new() -> Self {
         // Get internal IP
         let mut local_ip: Option<Ipv4Addr> = None;
         let ip_list = get_if_addrs::get_if_addrs().unwrap();
@@ -72,7 +71,6 @@ impl Server {
 
         Server {
             listener,
-            num_nodes,
             bucket_list: Arc::new(Mutex::new(bucket_list)),
             port,
         }
@@ -81,10 +79,14 @@ impl Server {
     pub fn start(&mut self) {
         for s in self.listener.incoming() {
             if let Ok(stream) = s {
-                println!("Accepted connection with {}", stream.peer_addr().unwrap());
-                stream.set_read_timeout(Some(Duration::from_secs(10)));
-                let mut handler = Handler::new(stream, self.bucket_list.clone());
-                handler.start();
+                let bucket_list = self.bucket_list.clone();
+
+                thread::spawn(|| {
+                    println!("Accepted connection with {}", stream.peer_addr().unwrap());
+                    stream.set_read_timeout(Some(Duration::from_secs(10))).unwrap();
+                    let mut handler = Handler::new(stream, bucket_list);
+                    handler.start();
+                });
             }
         };
     }
@@ -102,7 +104,7 @@ impl Server {
     pub fn load(&self, path: &str) {
         let bucket_list = load(path);
         for node in bucket_list.iter() {
-            self.bucket_list.lock().unwrap().add_node(node);
+            self.bucket_list.lock().unwrap().add_node(node).unwrap();
         }
         println!("{:?}", bucket_list);
     }

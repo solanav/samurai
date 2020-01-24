@@ -6,10 +6,12 @@ use std::io::Write;
 fn send_packet(stream: &mut TcpStream, packet: Packet) {
     if let Err(e) = stream.write(&packet.as_bytes()) {
         println!("Failed to send bytes [{}]", e);
+        return;
     }
 
     if let Err(e) = stream.flush() {
         println!("Failed to flush stream [{}]", e);
+        return;
     }
 }
 

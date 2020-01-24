@@ -9,7 +9,7 @@ pub fn save(path: &str, node_list: &Vec<Node>) {
     };
 
     let writer = BufWriter::new(file);
-    serde_json::to_writer_pretty(writer, node_list);
+    serde_json::to_writer_pretty(writer, node_list).unwrap();
 }
 
 pub fn load(path: &str) -> Vec<Node> {
