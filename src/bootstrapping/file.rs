@@ -14,7 +14,7 @@ pub fn save(path: &str, node_list: &Vec<Node>) {
 
 pub fn load(path: &str) -> Vec<Node> {
     let file = match File::open(&path) {
-        Err(e) => panic!("Failed to open {}: {}", path, e),
+        Err(_) => return Vec::new(),
         Ok(file) => file,
     };
 

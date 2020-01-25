@@ -10,8 +10,9 @@ use std::sync::{Arc, Mutex};
 use std::time::Duration;
 use std::thread;
 
-static MAX_BUCKETS: usize = 10;
-static BUCKET_SIZE: usize = 10;
+const MAX_BUCKETS: usize = 10;
+const BUCKET_SIZE: usize = 10;
+const BTST_FILE: &str = "peers.json";
 
 pub struct Server {
     listener: TcpListener, // Server's socket
@@ -77,6 +78,8 @@ impl Server {
     }
 
     pub fn start(&mut self) {
+        self.load(BTST_FILE);
+
         for s in self.listener.incoming() {
             if let Ok(stream) = s {
                 let bucket_list = self.bucket_list.clone();
@@ -91,6 +94,10 @@ impl Server {
         };
     }
 
+    pub fn stop(&self) {
+        self.save(BTST_FILE);
+    }
+
     pub fn port(&self) -> u16 {
         self.port
     }
@@ -98,14 +105,19 @@ impl Server {
     pub fn save(&self, path: &str) {
         let node_list = self.bucket_list.lock().unwrap().node_list();
         save(path, &node_list);
-        println!("{:?}", self.bucket_list);
     }
 
     pub fn load(&self, path: &str) {
-        let bucket_list = load(path);
-        for node in bucket_list.iter() {
-            self.bucket_list.lock().unwrap().add_node(node).unwrap();
+        let file_bucket_list = load(path);
+        let mut self_bucket_list = self.bucket_list.lock().unwrap();
+        for node in file_bucket_list.iter() {
+            self_bucket_list.add_node(node).unwrap();
         }
-        println!("{:?}", bucket_list);
+    }
+}
+
+impl Drop for Server {
+    fn drop (&mut self) {
+        println!("SHUTTING DOWN");
     }
 }
