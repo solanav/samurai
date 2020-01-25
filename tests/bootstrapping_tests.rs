@@ -1,6 +1,6 @@
-use samurai::network::passive::Server;
 use std::fs::File;
 use std::io::prelude::*;
+use samurai::server::passive::Server;
 
 #[test]
 fn test_file() {

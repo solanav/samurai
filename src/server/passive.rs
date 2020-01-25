@@ -1,6 +1,6 @@
-use crate::network::handler::Handler;
+use crate::server::handler::Handler;
 use crate::types::bucket_list::BucketList;
-use crate::bootstrapping::file::{save, load};
+use crate::bootstrap::file::{save, load};
 
 use std::net::{Ipv4Addr, SocketAddrV4, IpAddr, TcpListener};
 use igd;
@@ -55,7 +55,7 @@ impl Server {
             Err(ref err) => panic!("Error: {}", err),
             Ok(gateway) => {
                 match gateway.add_any_port(
-                    igd::PortMappingProtocol::UDP,
+                    igd::PortMappingProtocol::TCP,
                     SocketAddrV4::new(local_ip.unwrap(), internal_port),
                     10,
                     "Samurai") {
