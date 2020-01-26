@@ -2,8 +2,10 @@ use std::time::Duration;
 use std::thread;
 use std::sync::{Mutex, Arc};
 
+type Task = Box<dyn FnMut() + Send + 'static>;
+
 pub struct Upkeepr {
-    tasks: Arc<Mutex<Vec<(Box<dyn FnMut() + Send + 'static>, Duration)>>>
+    tasks: Arc<Mutex<Vec<Task>>>
 }
 
 impl Upkeepr {
@@ -18,43 +20,20 @@ impl Upkeepr {
         let tasks = self.tasks.clone();
 
         thread::spawn(move || {
-            let mut times: Vec<u64> = tasks.lock().unwrap()
-                .iter()
-                .map(|(_, d)| (*d).as_secs())
-                .collect();
-
-            times.sort_unstable();
+            let mut task_list = tasks.lock().unwrap();
 
             loop {
-                let mut time_pos: usize = 0;
-                let max = *times.last().expect("no tasks");
-                for sec in 0..max + 1 {
-                    println!("SECOND {}", sec);
-                    loop {
-                        if time_pos >= times.len() {
-                            break;
-                        }
-
-                        if sec == times[time_pos] {
-                            println!("SHIT TASK DONE");
-                            time_pos += 1;
-                        } else if sec > times[time_pos] {
-                            time_pos += 1;
-                        } else if sec < times[time_pos] {
-                            break;
-                        }
-                    }
-
-                    thread::sleep(Duration::from_secs(1));
+                for task in task_list.iter_mut() {
+                    task();
                 }
+                thread::sleep(Duration::from_secs(5));
             }
         });
     }
 
-    pub fn add_task<F>(&mut self, f: F, delay: Duration)
+    pub fn add_task<F>(&mut self, f: F)
         where F: FnMut() + Send + 'static
     {
-        self.tasks.lock().unwrap()
-            .push((Box::new(f), delay));
+        self.tasks.lock().unwrap().push(Box::new(f));
     }
 }
