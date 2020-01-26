@@ -1,12 +1,13 @@
-use samurai::upkeep::upkeepr::Upkeepr;
+use samurai::server::passive::Server;
 use std::time::Duration;
 use std::thread;
+use samurai::client::active::send_node;
 
 fn main() {
-    let mut upk = Upkeepr::new();
-    upk.add_task(move || println!("Task 1!"));
-    upk.add_task(move || println!("Task 2!"));
-    upk.start();
+    // Start listening
+    let server = Server::new();
 
-    thread::sleep(Duration::from_secs( 20));
+    thread::sleep(Duration::from_secs(20));
+    server.save("test.json");
+    thread::sleep(Duration::from_secs(20));
 }
