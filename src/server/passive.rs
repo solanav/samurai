@@ -8,6 +8,7 @@ use std::sync::{Arc, Mutex};
 use std::time::Duration;
 use std::thread;
 use crate::server::router_utils::{open_port, local_ip};
+use crate::server::threadpool::ThreadPool;
 
 const MAX_BUCKETS: usize = 10;
 const BUCKET_SIZE: usize = 10;
@@ -44,11 +45,13 @@ impl Server {
         let bucket_list_thread = bucket_list.clone();
 
         thread::spawn(move || {
+            let tp = ThreadPool::new(4);
+
             for s in listener.incoming() {
                 if let Ok(stream) = s {
                     let bl = bucket_list_thread.clone();
 
-                    thread::spawn(|| {
+                    tp.execute(move || {
                         println!("Accepted connection with {}", stream.peer_addr().unwrap());
                         stream.set_read_timeout(Some(Duration::from_secs(10))).unwrap();
                         let mut handler = Handler::new(stream, bl);

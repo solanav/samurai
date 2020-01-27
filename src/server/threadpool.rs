@@ -48,7 +48,7 @@ impl Worker {
                 let job = receiver.lock().unwrap()
                     .recv().unwrap();
 
-                println!("Got a new job~~");
+                job();
             }
         });
 

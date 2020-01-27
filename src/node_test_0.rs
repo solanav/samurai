@@ -1,12 +1,10 @@
 use samurai::server::passive::Server;
 use std::time::Duration;
 use std::thread;
-use samurai::client::active::send_node;
+use samurai::client::active::{send_node, ping};
 use samurai::server::threadpool::ThreadPool;
+use std::net::{TcpStream, Ipv4Addr, IpAddr, SocketAddr};
 
 fn main() {
-    let tp = ThreadPool::new(4);
-    tp.execute(move || println!("Hello world"));
-
-    thread::sleep(Duration::from_secs(10));
+    let server = Server::new();
 }
