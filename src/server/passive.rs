@@ -2,7 +2,7 @@ use crate::server::handler::Handler;
 use crate::types::bucket_list::BucketList;
 use crate::bootstrap::file::{save, load};
 
-use std::net::TcpListener;
+use std::net::{TcpListener, TcpStream};
 use rand::Rng;
 use std::sync::{Arc, Mutex};
 use std::time::Duration;
@@ -15,6 +15,7 @@ const BUCKET_SIZE: usize = 10;
 const BTST_FILE: &str = "peers.json";
 
 pub struct Server {
+    thread_pool: Arc<Mutex<ThreadPool>>, // Worker pool for handlers
     bucket_list: Arc<Mutex<BucketList>>, // List of buckets
     port: u16, // External port
 }
@@ -42,17 +43,19 @@ impl Server {
 
         // Create the bucket list
         let bucket_list = Arc::new(Mutex::new(BucketList::new(MAX_BUCKETS, BUCKET_SIZE)));
-        let bucket_list_thread = bucket_list.clone();
+        let bucket_list_thread = Arc::clone(&bucket_list);
+
+        // Create the threadpool for launching handlers
+        let thread_pool = Arc::new(Mutex::new(ThreadPool::new(4)));
+        let thread_pool_thread = Arc::clone(&thread_pool);
 
         thread::spawn(move || {
-            let tp = ThreadPool::new(4);
-
             for s in listener.incoming() {
                 if let Ok(stream) = s {
+                    // TODO: remove this and use queue_stream
                     let bl = bucket_list_thread.clone();
 
-                    tp.execute(move || {
-                        println!("Accepted connection with {}", stream.peer_addr().unwrap());
+                    thread_pool_thread.lock().unwrap().execute(move || {
                         stream.set_read_timeout(Some(Duration::from_secs(10))).unwrap();
                         let mut handler = Handler::new(stream, bl);
                         handler.start();
@@ -62,9 +65,21 @@ impl Server {
         });
 
         Server {
+            thread_pool,
             bucket_list,
             port,
         }
+    }
+
+    pub fn queue_stream(&self, stream: TcpStream) {
+        let bl = Arc::clone(&self.bucket_list);
+
+        self.thread_pool.lock().unwrap().execute(move || {
+            println!("Accepted connection with {}", stream.peer_addr().unwrap());
+            stream.set_read_timeout(Some(Duration::from_secs(10))).unwrap();
+            let mut handler = Handler::new(stream, bl);
+            handler.start();
+        });
     }
 
     pub fn port(&self) -> u16 {
