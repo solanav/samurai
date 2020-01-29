@@ -1,7 +1,7 @@
-use crate::types::packet::{self, Packet, DATA_SIZE, TOTAL_SIZE};
+use crate::packet::{self, Packet, DATA_SIZE, TOTAL_SIZE};
 use std::net::TcpStream;
-use crate::types::id::{Id, ID_BYTES};
-use crate::types::bucket_list::BucketList;
+use crate::id::{Id, ID_BYTES};
+use crate::bucket::bucket_list::BucketList;
 use std::sync::{Arc, Mutex};
 use std::io::Read;
 use crate::client::active;

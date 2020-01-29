@@ -1,4 +1,4 @@
-use crate::types::id::Id;
+use crate::id::Id;
 use std::fmt;
 use std::net::SocketAddr;
 use serde::{Deserialize, Serialize};

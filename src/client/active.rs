@@ -1,6 +1,6 @@
 use std::net::TcpStream;
-use crate::types::id::{Id, ID_BYTES};
-use crate::types::packet::{Packet, *};
+use crate::id::{Id, ID_BYTES};
+use crate::packet::{Packet, *};
 use std::io::Write;
 
 fn send_packet(stream: &mut TcpStream, packet: Packet) {

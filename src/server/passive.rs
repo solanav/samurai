@@ -1,5 +1,5 @@
 use crate::server::handler::Handler;
-use crate::types::bucket_list::BucketList;
+use crate::bucket::bucket_list::BucketList;
 use crate::bootstrap::file::{save, load};
 
 use std::net::{TcpListener, TcpStream};
@@ -12,7 +12,6 @@ use crate::server::threadpool::ThreadPool;
 
 const MAX_BUCKETS: usize = 10;
 const BUCKET_SIZE: usize = 10;
-const BTST_FILE: &str = "peers.json";
 
 pub struct Server {
     thread_pool: Arc<Mutex<ThreadPool>>, // Worker pool for handlers

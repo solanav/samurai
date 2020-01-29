@@ -1,8 +1,9 @@
-use crate::types::bucket::Bucket;
-use crate::types::id::Id;
-use crate::types::node::Node;
+use crate::bucket::Bucket;
+use crate::id::Id;
+use crate::node::Node;
 use std::fmt;
 use serde::{Deserialize, Serialize};
+use crate::bucket::error::BucketError;
 
 #[derive(Serialize, Deserialize)]
 pub struct BucketList {
@@ -56,7 +57,7 @@ impl BucketList {
         panic!("Bucket list is not well built");
     }
 
-    pub fn add_node(&mut self, node: &Node) -> Result<(), &'static str> {
+    pub fn add_node(&mut self, node: &Node) -> Result<(), BucketError> {
         let i = self.find_bucket(&node.id());
         self.buckets[i].add_node(node)
     }

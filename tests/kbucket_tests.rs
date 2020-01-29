@@ -1,7 +1,7 @@
-use samurai::types::bucket::Bucket;
-use samurai::types::bucket_list::BucketList;
-use samurai::types::node::Node;
-use samurai::types::id::Id;
+use samurai::bucket::Bucket;
+use samurai::bucket_list::BucketList;
+use samurai::node::Node;
+use samurai::id::Id;
 use std::net::{Ipv4Addr, SocketAddr, IpAddr};
 
 static MAX_BUCKETS: usize = 10;

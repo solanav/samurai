@@ -1,7 +1,11 @@
-use crate::types::id::Id;
-use crate::types::node::Node;
+pub mod bucket_list;
+pub mod error;
+
+use crate::id::Id;
+use crate::node::Node;
 use std::fmt;
 use serde::{Deserialize, Serialize};
+use crate::bucket::error::BucketError;
 
 #[derive(Serialize, Deserialize)]
 pub struct Bucket {
@@ -21,17 +25,17 @@ impl Bucket {
         }
     }
 
-    pub fn add_node(&mut self, node: &Node) -> Result<(), &'static str> {
+    pub fn add_node(&mut self, node: &Node) -> Result<(), BucketError> {
         if self.node_list.len() >= self.max_nodes {
-            return Err("This bucket is already full");
+            return Err(BucketError::BucketFull);
         }
 
         if self.start_id > node.id() || node.id() > self.end_id {
-            return Err("This bucket should not contain that node");
+            return Err(BucketError::IncorrectBucket);
         }
 
         if self.local().is_ok() && node.is_local() {
-            return Err("There already is a local node inside the bucket")
+            return Err(BucketError::RepeatedLNode);
         }
 
         self.node_list.push(*node);
@@ -44,14 +48,14 @@ impl Bucket {
         }
     }
 
-    pub fn local(&self) -> Result<Node, &'static str> {
+    pub fn local(&self) -> Result<Node, BucketError> {
         for node in self.node_list.iter() {
             if node.is_local() {
                 return Ok(*node);
             }
         }
 
-        Err("Local node not found in this bucket")
+        Err(BucketError::LNodeNotFound)
     }
 
     pub fn divide(&mut self) -> Option<Self> {
@@ -82,22 +86,22 @@ impl Bucket {
         Some(new_bucket)
     }
 
-    pub fn get(&self, i: usize) -> Result<Node, &'static str> {
+    pub fn get(&self, i: usize) -> Result<Node, BucketError> {
         if i >= self.node_list.len() {
-            return Err("Index out of range");
+            return Err(BucketError::IndexError);
         }
 
         Ok(self.node_list[i])
     }
 
-    pub fn get_by_id(&self, id: &Id) -> Result<Node, &'static str> {
+    pub fn get_by_id(&self, id: &Id) -> Result<Node, BucketError> {
         for node in self.node_list.iter() {
             if node.id() == *id {
                 return Ok(*node);
             }
         }
 
-        Err("Node not found on bucket")
+        Err(BucketError::NodeNotFound)
     }
 
     pub fn fits(&self, id: &Id) -> bool {

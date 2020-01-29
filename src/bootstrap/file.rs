@@ -1,6 +1,6 @@
 use std::fs::File;
 use std::io::{BufWriter, BufReader};
-use crate::types::node::Node;
+use crate::node::Node;
 
 pub fn save(path: &str, node_list: &Vec<Node>) {
     let file = match File::create(&path) {

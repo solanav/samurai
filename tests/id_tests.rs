@@ -1,4 +1,4 @@
-use samurai::types::id::Id;
+use samurai::id::Id;
 
 #[test]
 fn test_add() {
