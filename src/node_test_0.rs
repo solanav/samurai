@@ -1,5 +1,8 @@
 use samurai::server::passive::Server;
+use samurai::bootstrap::random::*;
 
 fn main() {
-    let _server = Server::new();
+    let a = random_ipv6();
+    println!("{}", a);
+    //let _server = Server::new();
 }
