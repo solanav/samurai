@@ -1,4 +1,7 @@
+/// Wrapper to store many buckets
 pub mod bucket_list;
+
+/// Bucket errors
 pub mod error;
 
 use crate::id::Id;
@@ -25,12 +28,15 @@ impl Bucket {
         }
     }
 
+    /// Add a new ndoe, can fail if the bucket is full, if the node should not
+    /// be inside this bucket and if the node is Local but there already is a
+    /// local node in this bucket.
     pub fn add_node(&mut self, node: &Node) -> Result<(), BucketError> {
         if self.node_list.len() >= self.max_nodes {
             return Err(BucketError::BucketFull);
         }
 
-        if self.start_id > node.id() || node.id() > self.end_id {
+        if !self.fits(&node.id()) {
             return Err(BucketError::IncorrectBucket);
         }
 
@@ -42,12 +48,14 @@ impl Bucket {
         Ok(())
     }
 
+    /// Remove a node by its ID
     pub fn rm_node(&mut self, id: Id) {
         if let Some(i) = self.node_list.iter().position(|&i| i.id() == id) {
             self.node_list.remove(i);
         }
     }
 
+    /// Check if the bucket contains the node that represents us
     pub fn local(&self) -> Result<Node, BucketError> {
         for node in self.node_list.iter() {
             if node.is_local() {
@@ -58,6 +66,8 @@ impl Bucket {
         Err(BucketError::LNodeNotFound)
     }
 
+    /// Divide bucket and split the ID space between the two.
+    /// It also moves the nodes to the new bucket if necessary.
     pub fn divide(&mut self) -> Option<Self> {
         if self.node_list.len() >= self.max_nodes {
             println!("Too many nodes");
@@ -86,6 +96,7 @@ impl Bucket {
         Some(new_bucket)
     }
 
+    /// Get a node from the bucket by its index, can fail if index is incorrect.
     pub fn get(&self, i: usize) -> Result<Node, BucketError> {
         if i >= self.node_list.len() {
             return Err(BucketError::IndexError);
@@ -94,6 +105,7 @@ impl Bucket {
         Ok(self.node_list[i])
     }
 
+    /// Get a node from the bucket by its ID.
     pub fn get_by_id(&self, id: &Id) -> Result<Node, BucketError> {
         for node in self.node_list.iter() {
             if node.id() == *id {
@@ -104,10 +116,12 @@ impl Bucket {
         Err(BucketError::NodeNotFound)
     }
 
+    /// Check if a node fits inside the bucket (in terms of ID)
     pub fn fits(&self, id: &Id) -> bool {
         *id > self.start_id && *id < self.end_id
     }
 
+    /// Get list of nodes inside a bucket
     pub fn nodes(&self) -> &Vec<Node> {
         &self.node_list
     }
