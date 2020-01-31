@@ -10,6 +10,10 @@ repository = "https://github.com/solanav/samurai"
 description = """
 Very early stage user-space P2P network protocol.
 """
+exclude = [
+    "mininet/",
+    "doc/*",
+]
 
 [dependencies]
 rand = "0.7.3" # For non-crypto random functions
