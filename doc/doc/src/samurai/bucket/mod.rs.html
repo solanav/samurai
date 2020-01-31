@@ -129,8 +129,25 @@
 <span id="129">129</span>
 <span id="130">130</span>
 <span id="131">131</span>
+<span id="132">132</span>
+<span id="133">133</span>
+<span id="134">134</span>
+<span id="135">135</span>
+<span id="136">136</span>
+<span id="137">137</span>
+<span id="138">138</span>
+<span id="139">139</span>
+<span id="140">140</span>
+<span id="141">141</span>
+<span id="142">142</span>
+<span id="143">143</span>
+<span id="144">144</span>
+<span id="145">145</span>
 </pre><div class="example-wrap"><pre class="rust ">
+<span class="doccomment">/// Wrapper to store many buckets</span>
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">bucket_list</span>;
+
+<span class="doccomment">/// Bucket errors</span>
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">error</span>;
 
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">id</span>::<span class="ident">Id</span>;
@@ -157,12 +174,15 @@
         }
     }
 
+    <span class="doccomment">/// Add a new ndoe, can fail if the bucket is full, if the node should not</span>
+    <span class="doccomment">/// be inside this bucket and if the node is Local but there already is a</span>
+    <span class="doccomment">/// local node in this bucket.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">add_node</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">node</span>: <span class="kw-2">&amp;</span><span class="ident">Node</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">BucketError</span><span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">node_list</span>.<span class="ident">len</span>() <span class="op">&gt;</span><span class="op">=</span> <span class="self">self</span>.<span class="ident">max_nodes</span> {
             <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">BucketError</span>::<span class="ident">BucketFull</span>);
         }
 
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">start_id</span> <span class="op">&gt;</span> <span class="ident">node</span>.<span class="ident">id</span>() <span class="op">|</span><span class="op">|</span> <span class="ident">node</span>.<span class="ident">id</span>() <span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">end_id</span> {
+        <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">fits</span>(<span class="kw-2">&amp;</span><span class="ident">node</span>.<span class="ident">id</span>()) {
             <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">BucketError</span>::<span class="ident">IncorrectBucket</span>);
         }
 
@@ -174,12 +194,14 @@
         <span class="prelude-val">Ok</span>(())
     }
 
+    <span class="doccomment">/// Remove a node by its ID</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">rm_node</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">id</span>: <span class="ident">Id</span>) {
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">i</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">node_list</span>.<span class="ident">iter</span>().<span class="ident">position</span>(<span class="op">|</span><span class="kw-2">&amp;</span><span class="ident">i</span><span class="op">|</span> <span class="ident">i</span>.<span class="ident">id</span>() <span class="op">=</span><span class="op">=</span> <span class="ident">id</span>) {
             <span class="self">self</span>.<span class="ident">node_list</span>.<span class="ident">remove</span>(<span class="ident">i</span>);
         }
     }
 
+    <span class="doccomment">/// Check if the bucket contains the node that represents us</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">local</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Node</span>, <span class="ident">BucketError</span><span class="op">&gt;</span> {
         <span class="kw">for</span> <span class="ident">node</span> <span class="kw">in</span> <span class="self">self</span>.<span class="ident">node_list</span>.<span class="ident">iter</span>() {
             <span class="kw">if</span> <span class="ident">node</span>.<span class="ident">is_local</span>() {
@@ -190,6 +212,8 @@
         <span class="prelude-val">Err</span>(<span class="ident">BucketError</span>::<span class="ident">LNodeNotFound</span>)
     }
 
+    <span class="doccomment">/// Divide bucket and split the ID space between the two.</span>
+    <span class="doccomment">/// It also moves the nodes to the new bucket if necessary.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">divide</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">node_list</span>.<span class="ident">len</span>() <span class="op">&gt;</span><span class="op">=</span> <span class="self">self</span>.<span class="ident">max_nodes</span> {
             <span class="macro">println</span><span class="macro">!</span>(<span class="string">&quot;Too many nodes&quot;</span>);
@@ -218,6 +242,7 @@
         <span class="prelude-val">Some</span>(<span class="ident">new_bucket</span>)
     }
 
+    <span class="doccomment">/// Get a node from the bucket by its index, can fail if index is incorrect.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">i</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Node</span>, <span class="ident">BucketError</span><span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="ident">i</span> <span class="op">&gt;</span><span class="op">=</span> <span class="self">self</span>.<span class="ident">node_list</span>.<span class="ident">len</span>() {
             <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">BucketError</span>::<span class="ident">IndexError</span>);
@@ -226,6 +251,7 @@
         <span class="prelude-val">Ok</span>(<span class="self">self</span>.<span class="ident">node_list</span>[<span class="ident">i</span>])
     }
 
+    <span class="doccomment">/// Get a node from the bucket by its ID.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_by_id</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">id</span>: <span class="kw-2">&amp;</span><span class="ident">Id</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Node</span>, <span class="ident">BucketError</span><span class="op">&gt;</span> {
         <span class="kw">for</span> <span class="ident">node</span> <span class="kw">in</span> <span class="self">self</span>.<span class="ident">node_list</span>.<span class="ident">iter</span>() {
             <span class="kw">if</span> <span class="ident">node</span>.<span class="ident">id</span>() <span class="op">=</span><span class="op">=</span> <span class="kw-2">*</span><span class="ident">id</span> {
@@ -236,10 +262,12 @@
         <span class="prelude-val">Err</span>(<span class="ident">BucketError</span>::<span class="ident">NodeNotFound</span>)
     }
 
+    <span class="doccomment">/// Check if a node fits inside the bucket (in terms of ID)</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">fits</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">id</span>: <span class="kw-2">&amp;</span><span class="ident">Id</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
         <span class="kw-2">*</span><span class="ident">id</span> <span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">start_id</span> <span class="kw-2">&amp;</span><span class="op">&amp;</span> <span class="kw-2">*</span><span class="ident">id</span> <span class="op">&lt;</span> <span class="self">self</span>.<span class="ident">end_id</span>
     }
 
+    <span class="doccomment">/// Get list of nodes inside a bucket</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">nodes</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Node</span><span class="op">&gt;</span> {
         <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">node_list</span>
     }

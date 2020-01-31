@@ -1,1 +1,1 @@
-initSidebarItems({"mod":[["bootstrap",""],["bucket",""],["client",""],["id",""],["node",""],["packet",""],["server",""]]});
+initSidebarItems({"mod":[["bootstrap","Functions used to get into the network when restarted"],["bucket","Data structures shared by other modules"],["client","Functions used to send messages to other peers"],["id","Id of a node in the network"],["node","Structure representing a node in the network"],["packet","Packet structure of the protocol"],["server","Server that listens for packets"]]});

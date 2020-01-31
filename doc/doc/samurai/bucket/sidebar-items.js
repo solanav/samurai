@@ -1,1 +1,1 @@
-initSidebarItems({"mod":[["bucket_list",""],["error",""]],"struct":[["Bucket",""]]});
+initSidebarItems({"mod":[["bucket_list","Wrapper to store many buckets"],["error","Bucket errors"]],"struct":[["Bucket",""]]});
