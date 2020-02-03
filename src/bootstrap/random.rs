@@ -1,4 +1,4 @@
-use std::net::{SocketAddr, SocketAddrV6};
+use std::net::SocketAddr;
 use rand::Rng;
 
 pub fn random_ipv4() -> SocketAddr {

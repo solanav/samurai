@@ -1,5 +1,5 @@
 use samurai::bucket::Bucket;
-use samurai::bucket_list::BucketList;
+use samurai::bucket::bucket_list::BucketList;
 use samurai::node::Node;
 use samurai::id::Id;
 use std::net::{Ipv4Addr, SocketAddr, IpAddr};
