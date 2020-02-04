@@ -66,7 +66,7 @@ class CS144Controller(Controller):
 def start_node(host):
     "Start node"
     info('*** Starting node', host, '\n')
-    host.cmd('nohup ./samurai_node &' % (host.name))
+    host.cmd('nohup ./samurai_node &')
 
 
 def stop_node():

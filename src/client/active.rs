@@ -6,6 +6,7 @@ use std::io::Write;
 fn send_packet(stream: &mut TcpStream, packet: Packet) {
     if let Err(e) = stream.write(&packet.as_bytes()) {
         println!("Failed to send bytes [{}]", e);
+
         return;
     }
 

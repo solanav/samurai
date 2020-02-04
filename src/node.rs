@@ -26,4 +26,8 @@ impl Node {
     pub fn id(self) -> Id {
         self.id
     }
+
+    pub fn addr(self) -> SocketAddr {
+        self.addr
+    }
 }
