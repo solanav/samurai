@@ -3,7 +3,7 @@ use crate::id::Id;
 use crate::node::Node;
 use std::fmt;
 use serde::{Deserialize, Serialize};
-use crate::bucket::error::BucketError;
+use crate::error::BucketError;
 
 #[derive(Serialize, Deserialize)]
 pub struct BucketList {

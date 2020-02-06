@@ -16,7 +16,7 @@ const BUCKET_SIZE: usize = 10;
 pub struct Server {
     thread_pool: Arc<Mutex<ThreadPool>>, // Worker pool for handlers
     bucket_list: Arc<Mutex<BucketList>>, // List of buckets
-    port: u16, // External port
+    port: Option<u16>, // External port
 }
 
 impl Server {
@@ -36,7 +36,13 @@ impl Server {
         }
 
         let local_ip = local_ip();
-        let port = open_port(local_ip, local_port);
+        let port = match open_port(local_ip, local_port) {
+            Ok(p) => Some(p),
+            Err(e) => {
+                println!("Error opening port: {}", e);
+                None
+            }
+        };
 
         println!("internal port > {}", local_port);
 
@@ -81,7 +87,7 @@ impl Server {
         });
     }
 
-    pub fn port(&self) -> u16 {
+    pub fn port(&self) -> Option<u16> {
         self.port
     }
 

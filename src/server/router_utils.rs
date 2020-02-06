@@ -1,4 +1,6 @@
 use std::net::{Ipv4Addr, IpAddr, SocketAddrV4};
+use crate::error::ServerError;
+use crate::server::passive::Server;
 
 /// Get ip in the current interface
 pub fn local_ip() -> Ipv4Addr {
@@ -14,22 +16,22 @@ pub fn local_ip() -> Ipv4Addr {
 }
 
 /// Uses UPnP to open a port on the router
-pub fn open_port(local_ip: Ipv4Addr, local_port: u16) -> u16 {
+pub fn open_port(local_ip: Ipv4Addr, local_port: u16) -> Result<u16, ServerError> {
     // Get a random external port with UPnP redirected to our internal port
     let port: u16;
     match igd::search_gateway(Default::default()) {
-        Err(ref err) => panic!("Error: {}", err),
+        Err(ref err) => return Err(ServerError::SearchRouter),
         Ok(gateway) => {
             match gateway.add_any_port(
                 igd::PortMappingProtocol::TCP,
                 SocketAddrV4::new(local_ip, local_port),
                 10,
                 "Samurai") {
-                Err(ref e) => panic!("Error getting port: {}", e),
+                Err(ref e) => return Err(ServerError::AddPort),
                 Ok(p) => port = p,
             }
         }
     }
 
-    port
+    Ok(port)
 }

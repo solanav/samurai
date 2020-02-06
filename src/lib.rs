@@ -18,3 +18,6 @@ pub mod node;
 
 /// Packet structure of the protocol
 pub mod packet;
+
+/// Custom samurai errors
+pub mod error;
