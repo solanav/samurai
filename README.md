@@ -1,5 +1,5 @@
 # What is this?
-The intention of this piece of code is to create a p2p protocol on top of UDP. 
+The intention of this piece of code is to create a p2p protocol on top of TCP. 
 
 # Warning
 This project is still in a very early stage. It cannot be used for anything yet.
