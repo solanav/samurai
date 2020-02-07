@@ -8,6 +8,7 @@ pub struct Node {
     id: Id, // Id of the node
     local: bool, // Is this node us?
     addr: SocketAddr, // Address
+    trust: f64, // Trust
 }
 
 impl Node {
@@ -16,6 +17,7 @@ impl Node {
             id,
             local,
             addr,
+            trust: 0f64,
         }
     }
 
@@ -23,11 +25,15 @@ impl Node {
         self.local
     }
 
-    pub fn id(self) -> Id {
+    pub fn id(&self) -> Id {
         self.id
     }
 
-    pub fn addr(self) -> SocketAddr {
+    pub fn addr(&self) -> SocketAddr {
         self.addr
+    }
+
+    pub fn set_trust(&mut self, trust: f64) {
+        self.trust = trust;
     }
 }
