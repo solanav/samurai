@@ -1,6 +1,7 @@
 use std::thread::JoinHandle;
 use std::thread;
 use std::sync::{mpsc, Arc, Mutex};
+use std::sync::mpsc::TryRecvError;
 
 type Job = Box<dyn FnOnce() + Send + 'static>;
 
@@ -34,6 +35,12 @@ impl ThreadPool {
         let job = Box::new(f);
         self.sender.send(job).unwrap();
     }
+
+    pub fn stop(self) {
+        for worker in self.workers {
+            worker.join();
+        }
+    }
 }
 
 struct Worker {
@@ -43,18 +50,32 @@ struct Worker {
 
 impl Worker {
     fn new(id: usize, receiver: Arc<Mutex<mpsc::Receiver<Job>>>) -> Self {
-        let thread = thread::spawn(move || {
+        let builder = thread::Builder::new();
+        let thread = builder.spawn(move || {
             loop {
-                let job = receiver.lock().unwrap()
-                    .recv().unwrap();
+                let job = match receiver.lock().unwrap().try_recv() {
+                    Ok(j) => j,
+                    Err(TryRecvError::Disconnected) => {
+                        println!("{} thread is stopping", id);
+                        break;
+                    }
+                    Err(TryRecvError::Empty) => continue,
+                };
 
                 job();
             }
-        });
+        }).unwrap();
 
         Worker {
             id,
             thread,
+        }
+    }
+
+    pub fn join(self) {
+        match self.thread.join() {
+            Ok(_) => (),
+            Err(e) => println!("Error joining worker {}: {:?}", self.id, e),
         }
     }
 }

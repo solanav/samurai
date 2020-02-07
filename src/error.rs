@@ -1,6 +1,4 @@
 use std::fmt;
-use crate::error::ServerError::SearchRouter;
-use crate::server::passive::Server;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum BucketError {
