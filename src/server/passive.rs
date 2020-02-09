@@ -9,6 +9,7 @@ use std::time::Duration;
 use std::thread;
 use crate::server::router_utils::{open_port, local_ip};
 use crate::server::threadpool::ThreadPool;
+use crate::error::FileError;
 
 const MAX_BUCKETS: usize = 10;
 const BUCKET_SIZE: usize = 10;
@@ -93,14 +94,17 @@ impl Server {
 
     pub fn save(&self, path: &str) {
         let node_list = self.bucket_list.lock().unwrap().node_list();
-        save(path, &node_list);
+        let _ = save(path, &node_list);
     }
 
-    pub fn load(&self, path: &str) {
-        let file_bucket_list = load(path);
+    pub fn load(&self, path: &str) -> Result<(), FileError> {
+        let file_bucket_list = load(path)?;
+
         let mut self_bucket_list = self.bucket_list.lock().unwrap();
         for node in file_bucket_list.iter() {
             self_bucket_list.add_node(node).unwrap();
         }
+
+        Ok(())
     }
 }

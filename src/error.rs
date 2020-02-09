@@ -41,3 +41,24 @@ impl fmt::Display for ServerError {
         }
     }
 }
+
+
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum FileError {
+    OpenFile,
+    SaveData,
+    LoadData,
+}
+
+impl std::error::Error for FileError {}
+
+impl fmt::Display for FileError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match *self {
+            FileError::OpenFile => write!(f, "Failed to open file for saving or loading."),
+            FileError::SaveData => write!(f, "Failed to write json peer data to file."),
+            FileError::LoadData => write!(f, "Failed to read json peer data from file."),
+        }
+    }
+}
