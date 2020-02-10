@@ -62,7 +62,9 @@ impl Server {
                     let bl = bucket_list_thread.clone();
 
                     thread_pool_thread.lock().unwrap().execute(move || {
-                        stream.set_read_timeout(Some(Duration::from_secs(10))).unwrap();
+                        if let Err(e) = stream.set_read_timeout(Some(Duration::from_secs(10))) {
+                            println!("Failed to set read timeout for tcpstream: {:?}", e);
+                        }
                         let mut handler = Handler::new(stream, bl);
                         handler.start();
                     });
@@ -82,7 +84,9 @@ impl Server {
 
         self.thread_pool.lock().unwrap().execute(move || {
             println!("Accepted connection with {}", stream.peer_addr().unwrap());
-            stream.set_read_timeout(Some(Duration::from_secs(10))).unwrap();
+            if let Err(e) = stream.set_read_timeout(Some(Duration::from_secs(10))) {
+                println!("Failed to set read timeout for tcpstream: {:?}", e);
+            }
             let mut handler = Handler::new(stream, bl);
             handler.start();
         });
