@@ -27,7 +27,7 @@ impl Server {
         let listener;
         let local_port;
         loop {
-            let p = rng.gen_range(1024, 65535);
+            let p = 1024; //rng.gen_range(1024, 65535);
 
             if let Ok(l) = TcpListener::bind(format!("127.0.0.1:{}", p)) {
                 listener = l;

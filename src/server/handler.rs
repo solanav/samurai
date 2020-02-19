@@ -80,9 +80,17 @@ impl Handler {
 
     fn send_message(&mut self, packet: &Packet) {
         active::send_echo(&mut self.stream, packet.cookie(), packet.data());
+
+        for i in packet.data().iter() {
+            print!("{}", *i as char)
+        }
+        println!("");
     }
 
     fn send_echo(&mut self, packet: &Packet) {
-        println!("{:?}", packet.data().to_vec());
+        for i in packet.data().iter() {
+            print!("{}", *i as char)
+        }
+        println!("");
     }
 }

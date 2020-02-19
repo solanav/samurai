@@ -1,0 +1,4 @@
+h1 ./samurai_node > h1_log
+h2 ./samurai_node > h2_log
+net
+dump

@@ -72,11 +72,11 @@ pub fn send_message(stream: &mut TcpStream, msg: &String) {
         i += 1;
     }
 
-    let packet = Packet::new_with_cookie(SENDNODE_HEADER, &buf);
+    let packet = Packet::new_with_cookie(SENDMSG_HEADER, &buf);
     send_packet(stream, packet);
 }
 
 pub fn send_echo(stream: &mut TcpStream, cookie: u32, buf: &[u8; DATA_SIZE]) {
-    let packet = Packet::new(SENDNODE_HEADER, cookie, buf);
+    let packet = Packet::new(SENDECHO_HEADER, cookie, buf);
     send_packet(stream, packet);
 }
