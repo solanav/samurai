@@ -21,3 +21,6 @@ pub mod packet;
 
 /// Custom samurai errors
 pub mod error;
+
+/// Connection with debug server
+pub mod debug;
