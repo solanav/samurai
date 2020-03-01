@@ -11,4 +11,5 @@ sock.listen(1)
 
 while True:
     connection, client_address = sock.accept()
-    data = sock.recv(MAX_MSG)
+    data = connection.recv(MAX_MSG)
+    print(data)

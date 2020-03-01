@@ -1,7 +1,7 @@
-use std::net::{IpAddr, TcpStream};
+use std::net::{IpAddr, TcpStream, SocketAddrV4, Shutdown, Ipv4Addr};
 use std::io::Write;
 
-pub fn send_msg(debug_server_addr: IpAddr, msg: String) {
+pub fn send_message(debug_server_addr: SocketAddrV4, msg: String) {
     let mut con = match TcpStream::connect(debug_server_addr) {
         Ok(c) => c,
         Err(e) => {

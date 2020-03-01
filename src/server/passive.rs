@@ -3,7 +3,6 @@ use crate::bucket::bucket_list::BucketList;
 use crate::bootstrap::file::{save, load};
 
 use std::net::{TcpListener, TcpStream};
-use rand::Rng;
 use std::sync::{Arc, Mutex};
 use std::time::Duration;
 use std::thread;
@@ -27,7 +26,7 @@ impl Server {
         let listener;
         let local_port;
         loop {
-            let p = 1024; //rng.gen_range(1024, 65535);
+            let p = 1024; // TODO restore random >> rng.gen_range(1024, 65535);
 
             if let Ok(l) = TcpListener::bind(format!("127.0.0.1:{}", p)) {
                 listener = l;
