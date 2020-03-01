@@ -1,4 +1,5 @@
 import socket
+from datetime import datetime
 
 HOST='localhost'
 PORT=9393
@@ -12,4 +13,4 @@ sock.listen(1)
 while True:
     connection, client_address = sock.accept()
     data = connection.recv(MAX_MSG)
-    print(data)
+    print("[{}]: {}".format(datetime.now(), data.decode()))
