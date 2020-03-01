@@ -5,22 +5,43 @@ use std::thread::sleep;
 use std::time::Duration;
 use std::process::exit;
 
+const DEBUG_IP: &str = "127.0.0.1";
+const DEBUG_PORT: u16 = 9393;
+const PEER_LIST: &str = "peer_list.json";
+
 fn main() {
-    debug_send!("127.0.0.1", 9393, "testing");
-    exit(0);
+    debug_send!(DEBUG_IP, DEBUG_PORT, "Node starting");
 
     let _server = Server::new();
-    let peer_list = load("peer_list.txt");
+    debug_send!(DEBUG_IP, DEBUG_PORT, "Server started");
 
-    let mut s = match TcpStream::connect(SocketAddrV4::new(Ipv4Addr::new(127, 0, 0, 1), 1024)) {
-        Ok(s) => s,
+    let peer_list = match load(PEER_LIST) {
+        Ok(pl) => pl,
         Err(e) => {
-            println!("Error connecting {:?}", e);
-            sleep(Duration::from_secs(5));
+            let msg = format!("Failed to load peer list: {}", e);
+            debug_send!(DEBUG_IP, DEBUG_PORT, msg.as_str());
             return;
-        },
+        }
     };
 
-    active::send_message(&mut s, &"testing".to_string());
-    sleep(Duration::from_secs(5));
+    debug_send!(DEBUG_IP, DEBUG_PORT, "Peer list loaded");
+    sleep(Duration::from_secs(2));
+
+    // Main loop
+    loop {
+        for node in peer_list.iter() {
+            let mut s = match TcpStream::connect(node.addr()) {
+                Ok(s) => s,
+                Err(e) => {
+                    let msg = format!("Error connecting {:?}", e);
+                    debug_send!(DEBUG_IP, DEBUG_PORT, msg.as_str());
+                    break;
+                },
+            };
+
+            active::send_message(&mut s, &"testing".to_string());
+        }
+
+        sleep(Duration::from_secs(2));
+    }
 }

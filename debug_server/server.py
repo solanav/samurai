@@ -3,7 +3,7 @@ from datetime import datetime
 
 HOST='localhost'
 PORT=9393
-MAX_MSG=16
+MAX_MSG=512
 
 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 sock.bind((HOST, PORT))
