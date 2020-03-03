@@ -1,8 +1,14 @@
 #!/bin/bash
-REMOTE_IP=192.168.139.133
 
-scp mininet_script mininet@$REMOTE_IP:~
-scp peer_list.txt mininet@$REMOTE_IP:~
+# Compile
 cd ..
 cargo build --release --bin samurai_node
-scp target/release/samurai_node mininet@$REMOTE_IP:~
+
+# Copy peer list
+scp peer_list.json root@192.168.35.130:~
+scp peer_list.json root@192.168.35.131:~
+
+# Copy compiled binary to nodes
+scp target/release/samurai_node root@192.168.35.130:~
+scp target/release/samurai_node root@192.168.35.131:~
+

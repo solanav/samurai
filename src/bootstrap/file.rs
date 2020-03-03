@@ -2,6 +2,7 @@ use std::fs::File;
 use std::io::{BufWriter, BufReader};
 use crate::node::Node;
 use crate::error::FileError;
+use serde_json::Value;
 
 pub fn save(path: &str, node_list: &Vec<Node>) -> Result<(), FileError> {
     let file = match File::create(&path) {

@@ -9,6 +9,7 @@ use std::thread;
 use crate::server::router_utils::{open_port, local_ip};
 use crate::server::threadpool::ThreadPool;
 use crate::error::FileError;
+use crate::node::Node;
 
 const MAX_BUCKETS: usize = 10;
 const BUCKET_SIZE: usize = 10;
@@ -76,6 +77,11 @@ impl Server {
             bucket_list,
             port,
         }
+    }
+
+    pub fn add_node(&mut self, node: Node) {
+        let mut self_bucket_list = self.bucket_list.lock().unwrap();
+        self_bucket_list.add_node(&node).unwrap();
     }
 
     pub fn queue_stream(&self, stream: TcpStream) {
