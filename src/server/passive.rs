@@ -55,6 +55,8 @@ impl Server {
         let thread_pool = Arc::new(Mutex::new(ThreadPool::new(4)));
         let thread_pool_thread = Arc::clone(&thread_pool);
 
+        println!("Created bucket list and threadpool");
+
         thread::spawn(move || {
             for s in listener.incoming() {
                 if let Ok(stream) = s {
@@ -71,6 +73,8 @@ impl Server {
                 }
             };
         });
+
+        println!("Server launched ok");
 
         Server {
             thread_pool,

@@ -3,9 +3,8 @@ use std::io::Write;
 
 #[macro_export]
 macro_rules! debug_send {
-    ($ip:expr, $port:expr, $msg:expr) => (
-        let ip: Ipv4Addr = std::str::FromStr::from_str($ip).unwrap();
-        samurai::debug::send_message(SocketAddrV4::new(ip, $port), $msg.to_string())
+    ($msg:expr) => (
+        samurai::debug::send_message(std::net::SocketAddrV4::new(std::net::Ipv4Addr::new(192, 168, 35, 1), 9393), $msg.to_string())
     );
 }
 
