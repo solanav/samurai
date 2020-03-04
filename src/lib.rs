@@ -24,3 +24,6 @@ pub mod error;
 
 /// Connection with debug server
 pub mod debug;
+
+/// Config parser
+pub mod config;

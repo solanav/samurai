@@ -1,15 +1,15 @@
 use crate::server::handler::Handler;
 use crate::bucket::bucket_list::BucketList;
 use crate::bootstrap::file::{save, load};
-
-use std::net::{TcpListener, TcpStream};
-use std::sync::{Arc, Mutex};
-use std::time::Duration;
-use std::thread;
-use crate::server::router_utils::{open_port, local_ip};
+use crate::server::router_utils::open_port;
 use crate::server::threadpool::ThreadPool;
 use crate::error::FileError;
 use crate::node::Node;
+
+use std::net::{TcpListener, TcpStream, Ipv4Addr};
+use std::sync::{Arc, Mutex};
+use std::time::Duration;
+use std::thread;
 
 const MAX_BUCKETS: usize = 10;
 const BUCKET_SIZE: usize = 10;
@@ -21,7 +21,7 @@ pub struct Server {
 }
 
 impl Server {
-    pub fn new() -> Self {
+    pub fn new(local_ip: Ipv4Addr) -> Self {
         // Start listening on a random internal port
         let mut rng = rand::thread_rng();
         let listener;
@@ -29,14 +29,13 @@ impl Server {
         loop {
             let p = 1024; // TODO restore random >> rng.gen_range(1024, 65535);
 
-            if let Ok(l) = TcpListener::bind(format!("127.0.0.1:{}", p)) {
+            if let Ok(l) = TcpListener::bind(format!("{}:{}", local_ip, p)) {
                 listener = l;
                 local_port = p;
                 break;
             }
         }
 
-        let local_ip = local_ip();
         let port = match open_port(local_ip, local_port) {
             Ok(p) => Some(p),
             Err(e) => {
@@ -45,7 +44,7 @@ impl Server {
             }
         };
 
-        println!("internal port > {}", local_port);
+        println!("Bound to {}:{}", local_ip, local_port);
 
         // Create the bucket list
         let bucket_list = Arc::new(Mutex::new(BucketList::new(MAX_BUCKETS, BUCKET_SIZE)));
@@ -60,6 +59,11 @@ impl Server {
         thread::spawn(move || {
             for s in listener.incoming() {
                 if let Ok(stream) = s {
+                    // Ignore messages to self TODO: change this to check if local is true in the node
+                    if stream.peer_addr().unwrap().ip() == local_ip {
+                        break;
+                    }
+
                     // TODO: remove this and use queue_stream
                     let bl = bucket_list_thread.clone();
 

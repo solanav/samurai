@@ -21,6 +21,7 @@ igd = "0.9.1" # UPnP / Nat traversal utils
 get_if_addrs = "0.5.3" # For getting local address
 serde = { version = "1.0", features = ["derive"] } # Saving and loading peer lists from files
 serde_json = "1.0" # Saving and loading peer lists from files
+config = "0.10.1" # Config parsing
 
 [lib]
 name = "samurai"

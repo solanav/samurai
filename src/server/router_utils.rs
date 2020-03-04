@@ -1,18 +1,6 @@
 use std::net::{Ipv4Addr, IpAddr, SocketAddrV4};
 use crate::error::ServerError;
-
-/// Get ip in the current interface
-pub fn local_ip() -> Ipv4Addr {
-    // Get internal IP
-    let ip_list = get_if_addrs::get_if_addrs().unwrap();
-    for ip in ip_list.iter() {
-        if let IpAddr::V4(ip) = ip.ip() {
-            return ip;
-        }
-    }
-
-    panic!("Failed to get local IPv4");
-}
+use get_if_addrs::Interface;
 
 /// Uses UPnP to open a port on the router
 pub fn open_port(local_ip: Ipv4Addr, local_port: u16) -> Result<u16, ServerError> {

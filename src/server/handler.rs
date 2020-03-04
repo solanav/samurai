@@ -82,6 +82,7 @@ impl Handler {
     fn send_message(&mut self, packet: &Packet) {
         active::send_echo(&mut self.stream, packet.cookie(), packet.data());
 
+        println!("Echo from {}", self.stream.peer_addr().unwrap().ip());
         for i in packet.data().iter() {
             print!("{}", *i as char)
         }

@@ -6,13 +6,15 @@ use std::time::Duration;
 use std::process::exit;
 use samurai::node::Node;
 use samurai::id::Id;
+use samurai::config::ConfigData;
 
 const PEER_LIST: &str = "peer_list.json";
 
 fn main() {
-    debug_send!("Node starting");
+    let conf: ConfigData = samurai::config::read_config();
+    debug_send!("Config read ok");
 
-    let mut _server = Server::new();
+    let mut _server = Server::new(conf.ip);
     debug_send!("Server started");
 
     let peer_list = match load(PEER_LIST) {
@@ -30,6 +32,10 @@ fn main() {
     // Main loop
     loop {
         for node in peer_list.iter() {
+            if node.addr().ip() == conf.ip {
+                continue;
+            }
+
             debug_send!(format!("Connecting to {}", node.addr().ip()).as_str());
 
             let mut s = match TcpStream::connect_timeout(&node.addr(), Duration::from_secs(1)) {
