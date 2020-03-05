@@ -1,7 +1,7 @@
 import socket
 from datetime import datetime
 
-HOST='192.168.35.1'
+HOST='localhost'
 PORT=9393
 MAX_MSG=512
 
