@@ -4,7 +4,7 @@
 # listed on the file ip_list.txt
 
 IP_LIST="scripts/ip_list.txt"
-CONFIG="scripts/samurai.conf"
+CONFIG="scripts/deploy.conf"
 
 # Compile
 cd ..
@@ -14,12 +14,12 @@ cargo build --release --bin samurai_node
 source $CONFIG
 
 # Copy server to server ip
-scp server.py $debug_server_user@$debug_server_ip:~
+scp scripts/server.py $debug_server_user@$debug_server_ip:~
 
 # Iterate through ip_list.txt
 for ip in ${node_ip_list[@]}
 do
-    echo "Working on $ip"
+    echo "Working on $node_user@$ip"
 
     # Create and copy config file
     echo ip = "$ip" > config.toml

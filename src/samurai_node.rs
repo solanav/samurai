@@ -1,11 +1,8 @@
 use samurai::{server::passive::Server, bootstrap::file::load, client::active, debug_send};
 
-use std::net::{TcpStream, SocketAddrV4, Ipv4Addr, SocketAddr, IpAddr};
+use std::net::TcpStream;
 use std::thread::sleep;
 use std::time::Duration;
-use std::process::exit;
-use samurai::node::Node;
-use samurai::id::Id;
 use samurai::config::ConfigData;
 
 const PEER_LIST: &str = "peer_list.json";

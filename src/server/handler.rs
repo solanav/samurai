@@ -5,7 +5,6 @@ use crate::bucket::bucket_list::BucketList;
 use std::sync::{Arc, Mutex};
 use std::io::Read;
 use crate::client::active;
-use crate::debug_send;
 
 pub struct Handler {
     stream: TcpStream, // To send messages

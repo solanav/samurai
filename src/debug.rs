@@ -1,4 +1,4 @@
-use std::net::{IpAddr, TcpStream, SocketAddrV4, Shutdown, Ipv4Addr};
+use std::net::{TcpStream, SocketAddrV4};
 use std::io::Write;
 
 #[macro_export]
