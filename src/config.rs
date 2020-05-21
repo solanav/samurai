@@ -3,7 +3,9 @@ use std::net::Ipv4Addr;
 use std::str::FromStr;
 
 pub struct ConfigData {
-    pub ip: Ipv4Addr,
+    pub bind_ip: Ipv4Addr,
+    pub debug_ip: Ipv4Addr,
+    pub debug_port: u16,
 }
 
 pub fn read_config() -> ConfigData {
@@ -15,6 +17,8 @@ pub fn read_config() -> ConfigData {
     let settings = settings.try_into::<HashMap<String, String>>().unwrap();
 
     ConfigData {
-        ip: Ipv4Addr::from_str(settings.get("ip").unwrap()).unwrap(),
+        bind_ip: Ipv4Addr::from_str(settings.get("bind_ip").unwrap()).unwrap(),
+        debug_ip: Ipv4Addr::from_str(settings.get("debug_ip").unwrap()).unwrap(),
+        debug_port: u16::from_str(settings.get("debug_port").unwrap()).unwrap(),
     }
 }

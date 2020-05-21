@@ -1,17 +1,18 @@
 #!/bin/bash
 
-# This scripts uploads the necessary files to all the nodes
-# listed on the file ip_list.txt
-
-IP_LIST="scripts/ip_list.txt"
-CONFIG="scripts/deploy.conf"
+# Node data
+debug_server_user=solanav
+debug_server_ip=192.168.1.123
+debug_server_port=9393
+node_user=solanav
+node_ip_list=(
+192.168.1.122
+192.168.1.121
+)
 
 # Compile
 cd ..
 cargo build --release --bin samurai_node
-
-# Get variables from config
-source $CONFIG
 
 # Copy server to server ip
 scp scripts/server.py $debug_server_user@$debug_server_ip:~
@@ -21,8 +22,11 @@ for ip in ${node_ip_list[@]}
 do
     echo "Working on $node_user@$ip"
 
-    # Create and copy config file
-    echo ip = "$ip" > config.toml
+    # Create config file
+    echo bind_ip = \"$ip\" >> config.toml
+    echo debug_ip = \"$debug_server_ip\" >> config.toml
+    echo debug_port = $debug_server_port >> config.toml
+    echo "" >> config.toml
     scp config.toml $node_user@$ip:~
     rm config.toml
 
