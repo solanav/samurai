@@ -4,10 +4,8 @@ pub mod bucket_list;
 use crate::id::Id;
 use crate::node::Node;
 use std::fmt;
-use serde::{Deserialize, Serialize};
 use crate::error::BucketError;
 
-#[derive(Serialize, Deserialize)]
 pub struct Bucket {
     node_list: Vec<Node>,
     start_id: Id,
@@ -25,10 +23,10 @@ impl Bucket {
         }
     }
 
-    /// Add a new ndoe, can fail if the bucket is full, if the node should not
+    /// Add a new node, can fail if the bucket is full, if the node should not
     /// be inside this bucket and if the node is Local but there already is a
     /// local node in this bucket.
-    pub fn add_node(&mut self, node: &Node) -> Result<(), BucketError> {
+    pub fn add_node(&mut self, node: Node) -> Result<(), BucketError> {
         if self.node_list.len() >= self.max_nodes {
             return Err(BucketError::BucketFull);
         }
@@ -37,30 +35,38 @@ impl Bucket {
             return Err(BucketError::IncorrectBucket);
         }
 
-        if self.local().is_ok() && node.is_local() {
+        if self.contains_local() && node.is_local() {
             return Err(BucketError::RepeatedLNode);
         }
 
-        self.node_list.push(*node);
+        self.node_list.push(node);
         Ok(())
     }
 
     /// Remove a node by its ID
     pub fn rm_node(&mut self, id: Id) {
-        if let Some(i) = self.node_list.iter().position(|&i| i.id() == id) {
+        let mut to_remove = Vec::new();
+
+        for (i, node) in self.node_list.iter().enumerate() {
+            if node.id() == id {
+                to_remove.push(i);
+            }
+        }
+
+        for i in to_remove {
             self.node_list.remove(i);
         }
     }
 
     /// Check if the bucket contains the node that represents us
-    pub fn local(&self) -> Result<Node, BucketError> {
+    pub fn contains_local(&self) -> bool {
         for node in self.node_list.iter() {
             if node.is_local() {
-                return Ok(*node);
+                return true;
             }
         }
 
-        Err(BucketError::LNodeNotFound)
+        false
     }
 
     /// Divide bucket and split the ID space between the two.
@@ -71,7 +77,7 @@ impl Bucket {
             return None;
         }
 
-        if self.local().is_err() {
+        if self.contains_local() == false {
             println!("No local");
             return None;
         }
@@ -82,35 +88,22 @@ impl Bucket {
 
         let mut new_bucket = Bucket::new(self.max_nodes, self.end_id + 1, end_id);
 
-        // Move nodes to corresponding bucket
-        let node_list_copy = self.node_list.clone();
-        for node in node_list_copy.iter() {
-            if new_bucket.add_node(node).is_ok() {
-                self.rm_node(node.id())
+        // Move nodes to new bucket and let add_node check for errors
+        for _ in 0..self.node_list.len() {
+            let node = self.node_list.pop();
+
+            match node {
+                Some(n) => {
+                    let id = n.id();
+                    if let Ok(_) = new_bucket.add_node(n) {
+                        self.rm_node(id);
+                    }
+                },
+                None => break,
             }
         }
 
         Some(new_bucket)
-    }
-
-    /// Get a node from the bucket by its index, can fail if index is incorrect.
-    pub fn get(&self, i: usize) -> Result<Node, BucketError> {
-        if i >= self.node_list.len() {
-            return Err(BucketError::IndexError);
-        }
-
-        Ok(self.node_list[i])
-    }
-
-    /// Get a node from the bucket by its ID.
-    pub fn get_by_id(&self, id: &Id) -> Result<Node, BucketError> {
-        for node in self.node_list.iter() {
-            if node.id() == *id {
-                return Ok(*node);
-            }
-        }
-
-        Err(BucketError::NodeNotFound)
     }
 
     /// Check if a node fits inside the bucket (in terms of ID)
@@ -119,8 +112,12 @@ impl Bucket {
     }
 
     /// Get list of nodes inside a bucket
-    pub fn nodes(&self) -> &Vec<Node> {
-        &self.node_list
+    pub fn nodes(&mut self) -> Vec<&mut Node> {
+        let mut node_list = Vec::new();
+        for node in self.node_list.iter_mut() {
+            node_list.push(node);
+        }
+        node_list
     }
 }
 
@@ -128,7 +125,7 @@ impl fmt::Debug for Bucket {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let mut output = format!(
             "{:?}\t{:?}\n\t{:?}",
-            self.local().is_ok(),
+            self.contains_local(),
             self.start_id,
             self.end_id
         );

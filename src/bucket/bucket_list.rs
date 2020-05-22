@@ -2,10 +2,9 @@ use crate::bucket::Bucket;
 use crate::id::Id;
 use crate::node::Node;
 use std::fmt;
-use serde::{Deserialize, Serialize};
 use crate::error::BucketError;
+use std::net::SocketAddr;
 
-#[derive(Serialize, Deserialize)]
 pub struct BucketList {
     buckets: Vec<Bucket>,
     max_buckets: usize,
@@ -28,22 +27,21 @@ impl BucketList {
     /// Return the ID of all nodes in the bucket_list
     /// sorted by xor distance.
     pub fn get_closest(&self, id: &Id) -> Vec<Id> {
+        let mut g_xor_vec: Vec<(Id, Id)> = Vec::new();
+
         // Create a list of all nodes
-        let mut global_node_list = Vec::new();
         for bucket in self.buckets.iter() {
-            global_node_list.append(&mut bucket.nodes().clone());
+            let mut xor_vec: Vec<(Id, Id)> = bucket.nodes().iter()
+                .map(|node| (*id ^ node.id(), node.id())).collect();
+
+            g_xor_vec.append(&mut xor_vec)
         }
 
-        // Create vector of xor distances and their corresponding ID
-        let mut xor_vec: Vec<(Id, Id)> = global_node_list.iter()
-            .map(|node| (*id ^ node.id(), node.id()))
-            .collect();
-
         // Sort by xor distance
-        xor_vec.sort_by(|a, b| a.0.cmp(&b.0));
+        g_xor_vec.sort_by(|a, b| a.0.cmp(&b.0));
 
         // Return the ID only, not the xor distances
-        xor_vec.iter()
+        g_xor_vec.iter()
             .map(|tup| tup.1)
             .collect()
     }
@@ -64,22 +62,30 @@ impl BucketList {
     }
 
     /// Add a new node to the bucket_list
-    pub fn add_node(&mut self, node: &Node) -> Result<(), BucketError> {
+    pub fn add_node(&mut self, node: Node) -> Result<(), BucketError> {
         let i = self.find_bucket(&node.id());
         self.buckets[i].add_node(node)
     }
 
-    /// Check if you can add more nodes to the bucket_list
-    pub fn empty_space(&self) -> bool {
-        // Call this function to know if you can add more nodes
-        self.buckets.len() < self.max_buckets
+    /// Finds a node given their address or None
+    pub fn get_node(&self, addr: SocketAddr) -> Option<&mut Node> {
+        for bucket in self.buckets.iter() {
+            for node in bucket.nodes().iter_mut() {
+                if node.addr() == addr {
+                    return Some(node);
+                }
+            }
+        }
+
+        None
     }
 
-    pub fn node_list(&self) -> Vec<Node> {
+    /// Returns a list of nodes extracted from the bucket list
+    pub fn node_list(&mut self) -> Vec<&mut Node> {
         let mut node_list = Vec::new();
-        for bucket in self.buckets.iter() {
-            for node in bucket.nodes().iter() {
-                node_list.push(*node);
+        for bucket in self.buckets.iter_mut() {
+            for node in bucket.nodes() {
+                node_list.push(node);
             }
         }
 

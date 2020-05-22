@@ -1,15 +1,21 @@
-use crate::server::handler::Handler;
-use crate::bucket::bucket_list::BucketList;
-use crate::bootstrap::file::{save, load};
-use crate::server::router_utils::open_port;
-use crate::server::threadpool::ThreadPool;
-use crate::error::FileError;
-use crate::node::Node;
+use crate::{
+    server::handler::Handler,
+    bucket::bucket_list::BucketList,
+    bootstrap::file::{save, load},
+    server::{
+        router_utils::open_port,
+        threadpool::ThreadPool
+    },
+    error::FileError,
+    node::Node,
+};
 
-use std::net::{TcpListener, TcpStream, Ipv4Addr};
-use std::sync::{Arc, Mutex};
-use std::time::Duration;
-use std::thread;
+use std::{
+    net::{TcpListener, TcpStream, Ipv4Addr},
+    sync::{Arc, Mutex},
+    time::Duration,
+    thread,
+};
 
 const MAX_BUCKETS: usize = 10;
 const BUCKET_SIZE: usize = 10;
@@ -21,9 +27,9 @@ pub struct Server {
 }
 
 impl Server {
-    pub fn new(local_ip: Ipv4Addr) -> Self {
+    pub fn new(local_ip: Ipv4Addr, bucket_list: Arc<Mutex<BucketList>>) -> Self {
         // Start listening on a random internal port
-        let mut rng = rand::thread_rng();
+        //let mut rng = rand::thread_rng();
         let listener;
         let local_port;
         loop {
@@ -46,8 +52,7 @@ impl Server {
 
         println!("Bound to {}:{}", local_ip, local_port);
 
-        // Create the bucket list
-        let bucket_list = Arc::new(Mutex::new(BucketList::new(MAX_BUCKETS, BUCKET_SIZE)));
+        // Clone bucket list for thread
         let bucket_list_thread = Arc::clone(&bucket_list);
 
         // Create the threadpool for launching handlers
@@ -89,7 +94,7 @@ impl Server {
 
     pub fn add_node(&mut self, node: Node) {
         let mut self_bucket_list = self.bucket_list.lock().unwrap();
-        self_bucket_list.add_node(&node).unwrap();
+        self_bucket_list.add_node(node).unwrap();
     }
 
     pub fn queue_stream(&self, stream: TcpStream) {
@@ -110,15 +115,22 @@ impl Server {
     }
 
     pub fn save(&self, path: &str) {
-        let node_list = self.bucket_list.lock().unwrap().node_list();
-        let _ = save(path, &node_list);
+        let mut bl = self.bucket_list.lock().unwrap();
+        let temp_node_list = bl.node_list();
+
+        let mut node_list = Vec::new();
+        for node in temp_node_list {
+            node_list.push(&*node)
+        }
+        let _ = save(path, node_list);
     }
 
     pub fn load(&self, path: &str) -> Result<(), FileError> {
-        let file_bucket_list = load(path)?;
+        let node_list = load(path)?;
 
         let mut self_bucket_list = self.bucket_list.lock().unwrap();
-        for node in file_bucket_list.iter() {
+
+        for node in node_list {
             self_bucket_list.add_node(node).unwrap();
         }
 

@@ -4,9 +4,6 @@ pub mod bucket;
 /// Server that listens for packets
 pub mod server;
 
-/// Functions used to send messages to other peers
-pub mod client;
-
 /// Functions used to get into the network when restarted
 pub mod bootstrap;
 

@@ -18,8 +18,6 @@ exclude = [
 [dependencies]
 rand = "0.7.3" # For non-crypto random functions
 igd = "0.9.1" # UPnP / Nat traversal utils
-serde = { version = "1.0", features = ["derive"] } # Saving and loading peer lists from files
-serde_json = "1.0" # Saving and loading peer lists from files
 config = "0.10.1" # Config parsing
 
 [lib]

@@ -1,20 +1,34 @@
-use crate::packet::{self, Packet, DATA_SIZE, TOTAL_SIZE};
-use std::net::TcpStream;
-use crate::id::{Id, ID_BYTES};
-use crate::bucket::bucket_list::BucketList;
-use std::sync::{Arc, Mutex};
-use std::io::Read;
-use crate::client::active;
+use crate::{
+    packet::{self, Packet, DATA_SIZE, TOTAL_SIZE},
+    id::{Id, ID_BYTES},
+    bucket::bucket_list::BucketList,
+    node::Node,
+};
+use std::{
+    net::{TcpStream, SocketAddr},
+    sync::{Arc, Mutex},
+    io::Read,
+};
 
 pub struct Handler {
     stream: TcpStream, // To send messages
+    addr: SocketAddr, // Address of the sender
     bucket_list: Arc<Mutex<BucketList>>, // To keep peers and add new ones
 }
 
 impl Handler {
-    pub fn new(stream: TcpStream, bucket_list: Arc<Mutex<BucketList>>) -> Self {
+    pub fn new(
+        stream: TcpStream,
+        bucket_list: Arc<Mutex<BucketList>>,
+    ) -> Self {
+        let addr = match stream.peer_addr() {
+            Ok(addr) => addr,
+            Err(e) => panic!("Failed to get addr out of TcpStream: {}", e),
+        };
+
         Handler {
             stream,
+            addr,
             bucket_list,
         }
     }
@@ -44,7 +58,26 @@ impl Handler {
     }
 
     fn ping(&mut self, packet: &Packet) {
-        active::pong(&mut self.stream, packet.cookie());
+        // Check if we know this node already
+        let bl = self.bucket_list.lock().unwrap();
+        let node = bl.get_node(self.addr);
+
+        match node {
+            Some(n) => {
+                n.pong(packet.cookie())
+            },
+            None => {
+                // Create the new node
+                let n = Node::new(Id::zero(), false, self.addr);
+
+                n.pong(packet.cookie());
+
+                // Send the new node the pong
+                if let Err(e) = self.bucket_list.lock().unwrap().add_node(n) {
+                    println!("Failed to add new node to bucket_list: {}", e);
+                }
+            }
+        };
     }
 
     fn pong(&self, packet: &Packet) {
@@ -62,7 +95,17 @@ impl Handler {
 
         println!("{:?}", id_list);
 
-        active::send_node(&mut self.stream, packet.cookie(), &id_list);
+        // Check if we know this node already
+        let bl = self.bucket_list.lock().unwrap();
+        let node = bl.get_node(self.addr);
+
+        match node {
+            Some(n) => n.send_node(packet.cookie(), &id_list),
+            None => {
+                let n = Node::new(Id::zero(), false, self.addr);
+                n.send_node(packet.cookie(), &id_list);
+            },
+        };
     }
 
     fn send_node(&mut self, packet: &Packet) {
@@ -79,7 +122,18 @@ impl Handler {
     }
 
     fn send_message(&mut self, packet: &Packet) {
-        active::send_echo(&mut self.stream, packet.cookie(), packet.data());
+        // Check if we know this node already
+        let bl = self.bucket_list.lock().unwrap();
+        let node = bl.get_node(self.addr);
+
+        match node {
+            Some(n) => n.send_echo(packet.cookie(), packet.data()),
+            None => {
+                // Create the new node
+                let n = Node::new(Id::zero(), false, self.addr);
+                n.send_echo(packet.cookie(), packet.data());
+            }
+        };
 
         println!("Echo from {}", self.stream.peer_addr().unwrap().ip());
         for i in packet.data().iter() {

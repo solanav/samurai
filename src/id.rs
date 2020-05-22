@@ -2,13 +2,12 @@ use rand::random;
 use std::cmp::{Eq, Ordering, PartialEq};
 use std::fmt;
 use std::ops::{Add, AddAssign, Sub, SubAssign, BitXor};
-use serde::{Deserialize, Serialize};
 
 pub const ID_BYTES: usize = 32;
 pub const HIGH_BITS: usize = 128;
 pub const LOW_BITS: usize = 128;
 
-#[derive(Eq, PartialEq, Clone, Copy, Serialize, Deserialize)]
+#[derive(Eq, PartialEq, Clone, Copy)]
 pub struct Id {
     high: u128,
     low: u128,
@@ -88,6 +87,10 @@ impl Id {
 
         half
     }
+
+    pub fn high(&self) -> u128 { self.high }
+
+    pub fn low(&self) -> u128 { self.low }
 }
 
 impl BitXor for Id {

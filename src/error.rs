@@ -42,8 +42,6 @@ impl fmt::Display for ServerError {
     }
 }
 
-
-
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum FileError {
     OpenFile,
@@ -59,6 +57,21 @@ impl fmt::Display for FileError {
             FileError::OpenFile => write!(f, "Failed to open file for saving or loading."),
             FileError::SaveData => write!(f, "Failed to write json peer data to file."),
             FileError::LoadData => write!(f, "Failed to read json peer data from file."),
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum ActiveError {
+    ConnectTimeout,
+}
+
+impl std::error::Error for ActiveError {}
+
+impl fmt::Display for ActiveError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match *self {
+            ActiveError::ConnectTimeout => write!(f, "Connection with node timed out."),
         }
     }
 }
