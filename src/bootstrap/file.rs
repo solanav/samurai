@@ -23,7 +23,7 @@ pub fn save(path: &str, node_list: Vec<&Node>) -> Result<(), FileError> {
             node.addr().port(),
         );
 
-        writer.write(data.as_bytes());
+        let _ = writer.write(data.as_bytes());
     }
 
     Ok(())

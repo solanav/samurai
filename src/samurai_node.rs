@@ -1,21 +1,21 @@
 use samurai::{
     server::passive::Server,
     bootstrap::file::load,
-    client::active,
     config::ConfigData,
     debug::DebugServer,
+    node::Node,
+    bucket::bucket_list::BucketList,
 };
 
 use std::{
     net::{TcpStream, IpAddr},
     thread::sleep,
     time::Duration,
+    sync::{Mutex, Arc},
 };
-use samurai::client::active::Active;
-use std::sync::{Mutex, Arc};
-use samurai::node::Node;
-use samurai::bucket::bucket_list::BucketList;
 
+const MAX_BUCKETS: usize = 10;
+const BUCKET_SIZE: usize = 10;
 const PEER_LIST: &str = "peer_list.json";
 
 fn main() {

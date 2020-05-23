@@ -52,8 +52,8 @@ impl Node {
     }
 
     fn send_packet(&mut self, packet: Packet) {
-        match self.con {
-            Some(mut c) => {
+        match &mut self.con {
+            Some(c) => {
                 if let Err(e) = c.write(&packet.as_bytes()) {
                     println!("Failed to send bytes [{}]", e);
                     return;

@@ -59,7 +59,7 @@ impl Handler {
 
     fn ping(&mut self, packet: &Packet) {
         // Check if we know this node already
-        let bl = self.bucket_list.lock().unwrap();
+        let mut bl = self.bucket_list.lock().unwrap();
         let node = bl.get_node(self.addr);
 
         match node {
@@ -68,7 +68,7 @@ impl Handler {
             },
             None => {
                 // Create the new node
-                let n = Node::new(Id::zero(), false, self.addr);
+                let mut n = Node::new(Id::zero(), false, self.addr);
 
                 n.pong(packet.cookie());
 
@@ -96,13 +96,13 @@ impl Handler {
         println!("{:?}", id_list);
 
         // Check if we know this node already
-        let bl = self.bucket_list.lock().unwrap();
+        let mut bl = self.bucket_list.lock().unwrap();
         let node = bl.get_node(self.addr);
 
         match node {
             Some(n) => n.send_node(packet.cookie(), &id_list),
             None => {
-                let n = Node::new(Id::zero(), false, self.addr);
+                let mut n = Node::new(Id::zero(), false, self.addr);
                 n.send_node(packet.cookie(), &id_list);
             },
         };
@@ -123,14 +123,14 @@ impl Handler {
 
     fn send_message(&mut self, packet: &Packet) {
         // Check if we know this node already
-        let bl = self.bucket_list.lock().unwrap();
+        let mut bl = self.bucket_list.lock().unwrap();
         let node = bl.get_node(self.addr);
 
         match node {
             Some(n) => n.send_echo(packet.cookie(), packet.data()),
             None => {
                 // Create the new node
-                let n = Node::new(Id::zero(), false, self.addr);
+                let mut n = Node::new(Id::zero(), false, self.addr);
                 n.send_echo(packet.cookie(), packet.data());
             }
         };

@@ -17,9 +17,6 @@ use std::{
     thread,
 };
 
-const MAX_BUCKETS: usize = 10;
-const BUCKET_SIZE: usize = 10;
-
 pub struct Server {
     thread_pool: Arc<Mutex<ThreadPool>>, // Worker pool for handlers
     bucket_list: Arc<Mutex<BucketList>>, // List of buckets

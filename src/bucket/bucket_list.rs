@@ -26,11 +26,11 @@ impl BucketList {
 
     /// Return the ID of all nodes in the bucket_list
     /// sorted by xor distance.
-    pub fn get_closest(&self, id: &Id) -> Vec<Id> {
+    pub fn get_closest(&mut self, id: &Id) -> Vec<Id> {
         let mut g_xor_vec: Vec<(Id, Id)> = Vec::new();
 
         // Create a list of all nodes
-        for bucket in self.buckets.iter() {
+        for bucket in self.buckets.iter_mut() {
             let mut xor_vec: Vec<(Id, Id)> = bucket.nodes().iter()
                 .map(|node| (*id ^ node.id(), node.id())).collect();
 
@@ -68,9 +68,9 @@ impl BucketList {
     }
 
     /// Finds a node given their address or None
-    pub fn get_node(&self, addr: SocketAddr) -> Option<&mut Node> {
-        for bucket in self.buckets.iter() {
-            for node in bucket.nodes().iter_mut() {
+    pub fn get_node(&mut self, addr: SocketAddr) -> Option<&mut Node> {
+        for bucket in self.buckets.iter_mut() {
+            for node in bucket.nodes() {
                 if node.addr() == addr {
                     return Some(node);
                 }
