@@ -13,6 +13,8 @@ use std::{
     time::Duration,
     sync::{Mutex, Arc},
 };
+use std::net::SocketAddr;
+use std::str::FromStr;
 
 const MAX_BUCKETS: usize = 10;
 const BUCKET_SIZE: usize = 10;
@@ -38,7 +40,12 @@ fn main() {
 
     // Create the bucket list
     let bucket_list = Arc::new(Mutex::new(BucketList::new(MAX_BUCKETS, BUCKET_SIZE)));
-    for node in node_list {
+    for mut node in node_list {
+        // Because of the nature of our peer list, all local fields are false
+        if node.addr() == SocketAddr::new(IpAddr::V4(conf.bind_ip), 1024) {
+            node.set_local(true);
+        }
+
         bucket_list.lock().unwrap().add_node(node);
     }
 
@@ -54,8 +61,9 @@ fn main() {
                 break;
             }
 
-            node.connect();
-            node.send_message(&String::from("Test message echo"));
+            if let Ok(_) = node.connect() {
+                node.send_message(&String::from("Test message echo"));
+            }
         }
 
         sleep(Duration::from_secs(5));

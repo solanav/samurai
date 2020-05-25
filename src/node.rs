@@ -27,6 +27,10 @@ impl Node {
         }
     }
 
+    pub fn set_local(&mut self, local: bool) {
+        self.local = local;
+    }
+
     pub fn is_local(&self) -> bool {
         self.local
     }
@@ -40,6 +44,10 @@ impl Node {
     }
 
     pub fn connect(&mut self) -> Result<(), ActiveError>{
+        if self.con.is_some() {
+            return Ok(());
+        }
+
         self.con = match TcpStream::connect(self.addr) {
             Ok(c) => Some(c),
             Err(e) => {
@@ -47,6 +55,8 @@ impl Node {
                 return Err(ActiveError::ConnectTimeout);
             },
         };
+
+        println!("Connected to {}", self.addr);
 
         Ok(())
     }
