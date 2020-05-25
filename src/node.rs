@@ -47,6 +47,10 @@ impl Node {
         self.con = Some(con);
     }
 
+    pub fn con(&mut self) -> &mut Option<TcpStream> {
+        &mut self.con
+    }
+
     pub fn connect(&mut self) -> Result<(), ActiveError>{
         if self.con.is_some() {
             return Ok(());

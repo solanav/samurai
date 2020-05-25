@@ -5,30 +5,52 @@ use crate::{
     node::Node,
 };
 use std::{
-    net::{TcpStream, SocketAddr},
+    net::TcpStream,
     sync::{Arc, Mutex},
     io::Read,
 };
 
-pub struct Handler {
-    stream: TcpStream, // To send messages
-    addr: SocketAddr, // Address of the sender
+pub struct Handler<'a> {
+    node: &'a mut Node, // Node with which we are communicating
     bucket_list: Arc<Mutex<BucketList>>, // To keep peers and add new ones
 }
 
-impl Handler {
-    pub fn new(
-        stream: TcpStream,
-        bucket_list: Arc<Mutex<BucketList>>,
-    ) -> Self {
+impl Handler<'_> {
+    pub fn new(stream: TcpStream, bucket_list: Arc<Mutex<BucketList>>) -> Self {
+        // Get the addr from the stream
         let addr = match stream.peer_addr() {
-            Ok(addr) => addr,
-            Err(e) => panic!("Failed to get addr out of TcpStream: {}", e),
+            Ok(a) => a,
+            Err(e) => {
+                panic!("Failed to extract addr from stream: {}", e);
+            },
+        };
+
+        // Add the new peer to bucket_list TODO: this is not good tho its ok for now
+        let mut bl = bucket_list.lock().unwrap();
+        let node = bl.get_node(addr);
+
+        let node = match node {
+            Some(n) => {
+                n.set_con(stream);
+                n
+            },
+            None => {
+                // Create the new node
+                let mut n = Node::new(Id::zero(), false, addr);
+
+                n.set_con(stream);
+
+                // Add new node to bucket list
+                if let Err(e) = bl.add_node(n) {
+                    println!("Failed to add new node to bucket_list: {}", e);
+                }
+
+                bl.get_node(addr).unwrap()
+            }
         };
 
         Handler {
-            stream,
-            addr,
+            node,
             bucket_list,
         }
     }
@@ -38,7 +60,15 @@ impl Handler {
         loop {
             let mut buf= [0u8; TOTAL_SIZE];
 
-            if let Err(_) = self.stream.read(&mut buf) {
+            let con = match self.node.con() {
+                Some(c) => c,
+                None => {
+                    println!("No connection, stopping handler");
+                    break;
+                },
+            };
+
+            if let Err(_) = con.read(&mut buf) {
                 println!("Timeout on handler, closing connection");
                 break;
             };
@@ -58,26 +88,7 @@ impl Handler {
     }
 
     fn ping(&mut self, packet: &Packet) {
-        // Check if we know this node already
-        let mut bl = self.bucket_list.lock().unwrap();
-        let node = bl.get_node(self.addr);
-
-        match node {
-            Some(n) => {
-                n.pong(packet.cookie())
-            },
-            None => {
-                // Create the new node
-                let mut n = Node::new(Id::zero(), false, self.addr);
-
-                n.pong(packet.cookie());
-
-                // Send the new node the pong
-                if let Err(e) = self.bucket_list.lock().unwrap().add_node(n) {
-                    println!("Failed to add new node to bucket_list: {}", e);
-                }
-            }
-        };
+        self.node.pong(packet.cookie());
     }
 
     fn pong(&self, packet: &Packet) {
@@ -95,17 +106,7 @@ impl Handler {
 
         println!("{:?}", id_list);
 
-        // Check if we know this node already
-        let mut bl = self.bucket_list.lock().unwrap();
-        let node = bl.get_node(self.addr);
-
-        match node {
-            Some(n) => n.send_node(packet.cookie(), &id_list),
-            None => {
-                let mut n = Node::new(Id::zero(), false, self.addr);
-                n.send_node(packet.cookie(), &id_list);
-            },
-        };
+        self.node.send_node(packet.cookie(), &id_list);
     }
 
     fn send_node(&mut self, packet: &Packet) {
@@ -122,20 +123,9 @@ impl Handler {
     }
 
     fn send_message(&mut self, packet: &Packet) {
-        // Check if we know this node already
-        let mut bl = self.bucket_list.lock().unwrap();
-        let node = bl.get_node(self.addr);
+        self.node.send_echo(packet.cookie(), packet.data());
 
-        match node {
-            Some(n) => n.send_echo(packet.cookie(), packet.data()),
-            None => {
-                // Create the new node
-                let mut n = Node::new(Id::zero(), false, self.addr);
-                n.send_echo(packet.cookie(), packet.data());
-            }
-        };
-
-        println!("Echo from {} [", self.stream.peer_addr().unwrap().ip());
+        println!("Echo from {} [", self.node.addr());
         for i in packet.data().iter() {
             print!("{}", *i as char)
         }
