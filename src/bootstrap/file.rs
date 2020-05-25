@@ -45,22 +45,19 @@ pub fn load(path: &str) -> Result<Vec<Node>, FileError> {
         }
 
         let line = line.unwrap();
-        let raw_node: Vec<&str> = line.split("'").collect();
+        let raw_node: Vec<&str> = line.split(",").collect();
 
-        let idh = *raw_node.get(0).unwrap();
-        let idh = u128::from_str(idh).unwrap();
-        let idl = *raw_node.get(1).unwrap();
-        let idl = u128::from_str(idl).unwrap();
+        if raw_node.len() != 5 {
+            break;
+        }
+
+        let idh = u128::from_str(raw_node[0]).unwrap();
+        let idl = u128::from_str(raw_node[1]).unwrap();
         let id = Id::new(idh, idl);
 
-        let local = *raw_node.get(2).unwrap();
-        let local = bool::from_str(local).unwrap();
-
-        let ip = *raw_node.get(3).unwrap();
-        let ip = IpAddr::from_str(ip).unwrap();
-
-        let port = *raw_node.get(4).unwrap();
-        let port = u16::from_str(port).unwrap();
+        let local = bool::from_str(raw_node[2]).unwrap();
+        let ip = IpAddr::from_str(raw_node[3]).unwrap();
+        let port = u16::from_str(raw_node[4]).unwrap();
 
         let node = Node::new(id, local, SocketAddr::new(ip, port));
         node_list.push(node);

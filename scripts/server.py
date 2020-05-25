@@ -10,6 +10,8 @@ MAX_MSG = 512
 def handle(con, addr):
     while True:
         data = con.recv(MAX_MSG)
+        if len(data) == 0:
+            return
         print("[{}] [{}]: {}".format(datetime.now(), addr[0], data.decode()))
 
 

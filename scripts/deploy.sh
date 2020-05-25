@@ -31,7 +31,7 @@ do
     rm config.toml
 
     # Copy peer list
-    scp peer_list.json $node_user@$ip:~
+    scp peer_list.txt $node_user@$ip:~
 
     # Copy compiled binary to nodes
     scp target/release/samurai_node $node_user@$ip:~
