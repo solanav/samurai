@@ -135,11 +135,11 @@ impl Handler {
             }
         };
 
-        println!("Echo from {}", self.stream.peer_addr().unwrap().ip());
+        println!("Echo from {} [", self.stream.peer_addr().unwrap().ip());
         for i in packet.data().iter() {
             print!("{}", *i as char)
         }
-        println!("");
+        println!("]");
     }
 
     fn send_echo(&mut self, packet: &Packet) {

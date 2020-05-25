@@ -43,6 +43,10 @@ impl Node {
         self.addr
     }
 
+    pub fn set_con(&mut self, con: TcpStream) {
+        self.con = Some(con);
+    }
+
     pub fn connect(&mut self) -> Result<(), ActiveError>{
         if self.con.is_some() {
             return Ok(());
