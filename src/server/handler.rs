@@ -7,15 +7,16 @@ use crate::{
 use std::{
     net::TcpStream,
     sync::{Arc, Mutex},
-    io::Read,
 };
+use std::net::SocketAddr;
+use std::io::Read;
 
-pub struct Handler<'a> {
-    node: &'a mut Node, // Node with which we are communicating
+pub struct Handler {
+    addr: SocketAddr, // Address of the node
     bucket_list: Arc<Mutex<BucketList>>, // To keep peers and add new ones
 }
 
-impl Handler<'_> {
+impl Handler {
     pub fn new(stream: TcpStream, bucket_list: Arc<Mutex<BucketList>>) -> Self {
         // Get the addr from the stream
         let addr = match stream.peer_addr() {
@@ -26,31 +27,30 @@ impl Handler<'_> {
         };
 
         // Add the new peer to bucket_list TODO: this is not good tho its ok for now
-        let mut bl = bucket_list.lock().unwrap();
-        let node = bl.get_node(addr);
+        {
+            let mut bl = bucket_list.lock().unwrap();
+            let node = bl.get_node(addr);
 
-        let node = match node {
-            Some(n) => {
-                n.set_con(stream);
-                n
-            },
-            None => {
-                // Create the new node
-                let mut n = Node::new(Id::zero(), false, addr);
+            match node {
+                Some(n) => {
+                    n.set_con(stream);
+                },
+                None => {
+                    // Create the new node
+                    let mut n = Node::new(Id::zero(), false, addr);
 
-                n.set_con(stream);
+                    n.set_con(stream);
 
-                // Add new node to bucket list
-                if let Err(e) = bl.add_node(n) {
-                    println!("Failed to add new node to bucket_list: {}", e);
+                    // Add new node to bucket list
+                    if let Err(e) = bl.add_node(n) {
+                        println!("Failed to add new node to bucket_list: {}", e);
+                    }
                 }
-
-                bl.get_node(addr).unwrap()
-            }
-        };
+            };
+        }
 
         Handler {
-            node,
+            addr,
             bucket_list,
         }
     }
@@ -58,22 +58,27 @@ impl Handler<'_> {
     pub fn start(&mut self) {
         // Keep going until we get a timeout
         loop {
-            let mut buf= [0u8; TOTAL_SIZE];
+            let packet = {
+                let mut bl = self.bucket_list.lock().unwrap();
+                let node = bl.get_node(self.addr).unwrap();
 
-            let con = match self.node.con() {
-                Some(c) => c,
-                None => {
-                    println!("No connection, stopping handler");
+                let mut buf= [0u8; TOTAL_SIZE];
+
+                let con = match node.con() {
+                    Some(c) => c,
+                    None => {
+                        println!("No connection, stopping handler");
+                        break;
+                    },
+                };
+
+                if let Err(_) = con.read(&mut buf) {
+                    println!("Timeout on handler, closing connection");
                     break;
-                },
-            };
+                };
 
-            if let Err(_) = con.read(&mut buf) {
-                println!("Timeout on handler, closing connection");
-                break;
+                Packet::from_bytes(&buf)
             };
-
-            let packet = Packet::from_bytes(&buf);
 
             match packet.header() {
                 packet::PING_HEADER => self.ping(&packet),
@@ -88,7 +93,10 @@ impl Handler<'_> {
     }
 
     fn ping(&mut self, packet: &Packet) {
-        self.node.pong(packet.cookie());
+        let mut bl = self.bucket_list.lock().unwrap();
+        let node = bl.get_node(self.addr).unwrap();
+
+        node.pong(packet.cookie());
     }
 
     fn pong(&self, packet: &Packet) {
@@ -106,7 +114,10 @@ impl Handler<'_> {
 
         println!("{:?}", id_list);
 
-        self.node.send_node(packet.cookie(), &id_list);
+        let mut bl = self.bucket_list.lock().unwrap();
+        let node = bl.get_node(self.addr).unwrap();
+
+        node.send_node(packet.cookie(), &id_list);
     }
 
     fn send_node(&mut self, packet: &Packet) {
@@ -123,16 +134,19 @@ impl Handler<'_> {
     }
 
     fn send_message(&mut self, packet: &Packet) {
-        self.node.send_echo(packet.cookie(), packet.data());
+        let mut bl = self.bucket_list.lock().unwrap();
+        let node = bl.get_node(self.addr).unwrap();
 
-        println!("Echo from {} [", self.node.addr());
+        node.send_echo(packet.cookie(), packet.data());
+
+        println!("Echo from {} [", self.addr);
         for i in packet.data().iter() {
             print!("{}", *i as char)
         }
         println!("]");
     }
 
-    fn send_echo(&mut self, packet: &Packet) {
+    fn send_echo(&self, packet: &Packet) {
         for i in packet.data().iter() {
             print!("{}", *i as char)
         }
